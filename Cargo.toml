@@ -1,0 +1,28 @@
+[package]
+name = "wasm-boilerplate"
+description="wasm example with easy access"
+repository = "https://github.com/rottier/react-wasm-vite-boilerplate"
+license = "Apache-2.0"
+version = "0.1.0"
+authors = ["rottier <marino@rottier.nl>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "./src/wasm/lib.rs"
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["Window", "console", "Document", "Element", "HtmlBodyElement"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.34"
+cargo-watch = "8.4"
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
