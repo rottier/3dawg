@@ -10,6 +10,7 @@ function TimelineComponent(props: Props) {
   const timelineElRef = useRef<HTMLDivElement>(null);
   const [timeline, setTimeline] = useState<Timeline>();
 
+
   useEffect(() => {
     let newTimeline: Timeline | null = null;
     // On component init
@@ -33,7 +34,10 @@ function TimelineComponent(props: Props) {
             strokeColor: "#000000",
           },
         },
-      });
+      }, {rows: []});
+
+      timeline?.onSelected((e) => console.log(e))
+
 
       // Here you can subscribe on timeline component events
       setTimeline(newTimeline);
