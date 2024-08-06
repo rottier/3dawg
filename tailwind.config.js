@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "./node_modules/tw-elements/js/**/*.js"],
   theme: {
     extend: {
       keyframes: {
@@ -12,7 +12,12 @@ export default {
       animation: {
         'mirror-h-instant': 'mirrorHorizontalInstant 2s steps(1) infinite',
       },
+      colors: {
+        red: '#E6234E',
+        blue: '#0D375D',
+        cyan: '#39C7B7',
+      },
     },
   },
-  plugins: [],
+  plugins: [require('daisyui')],
 };
