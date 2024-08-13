@@ -1,0 +1,63 @@
+import { AudioGraphNodes } from ".";
+import { AudioGraph, AudioGraphNode, AudioGraphNodeOscillator } from "./AudioGraph";
+import { assert, beforeEach, describe, test } from 'vitest';
+import "web-audio-test-api";
+
+describe("AudioGraph", () => {
+    let graph: AudioGraph;
+
+    beforeEach(() => {
+        graph = new AudioGraph(new AudioContext());
+    })
+
+    test("addAudioNode should add a new audio node to the graph", () => {
+        const nodeId = graph.addAudioNode(AudioGraphNodes.Oscillator);
+        const node = graph.nodes.find((n) => n.id === nodeId);
+
+        assert(node, "Node should be added to the graph");
+        assert(node instanceof AudioGraphNodeOscillator, "Node should be an instance of AudioGraphNodeOscillator");
+    });
+
+    test("removeAudioNode should remove an audio node from the graph", () => {
+        const nodeId = graph.addAudioNode(AudioGraphNodes.Oscillator);
+        const result = graph.removeAudioNode(nodeId);
+
+        assert(result, "Node should be removed from the graph");
+        assert(!graph.nodes.find((n) => n.id === nodeId), "Node should not exist in the graph");
+    });
+
+    test("linkNodes should create a link between two audio nodes", () => {
+        const oscillatorId = graph.addAudioNode(AudioGraphNodes.Oscillator);
+        const gainId = graph.addAudioNode(AudioGraphNodes.Gain);
+        const result = graph.linkNodes(oscillatorId, gainId);
+
+        assert(result, "Link should be created between the nodes");
+        assert(graph.findLinkIndex(oscillatorId, gainId) !== -1, "Link should exist in the graph");
+    });
+
+    test("unlinkNodes should remove a link between two audio nodes", () => {
+        const oscillatorId = graph.addAudioNode(AudioGraphNodes.Oscillator);
+        const gainId = graph.addAudioNode(AudioGraphNodes.Gain);
+        graph.linkNodes(oscillatorId, gainId);
+        const result = graph.unlinkNodes(oscillatorId, gainId);
+
+        assert(result, "Link should be removed between the nodes");
+        assert(graph.findLinkIndex(oscillatorId, gainId) === -1, "Link should not exist in the graph");
+    });
+});
+
+describe("AudioGraphNode", () => {
+    const audioContext = new AudioContext();
+    const graph = new AudioGraph(audioContext);
+    const graphNode = new AudioGraphNode(audioContext, graph);
+
+    test("start should start the node", () => {
+        graphNode.start();
+        assert(graphNode.isPlaying, "Oscillator should be playing");
+    });
+
+    test("stop should stop the node", () => {
+        graphNode.stop();
+        assert(!graphNode.isPlaying, "Oscillator should not be playing");
+    });
+});

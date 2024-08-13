@@ -1,21 +1,10 @@
+import { AudioGraphNode } from "./AudioGraph";
+export * from "./AudioGraph";
+
 export enum AudioGraphNodes {
     Oscillator = "Oscillator",
     Gain = "Gain",
 }
-
-
-export interface AudioGraphNode<Parameters = AudioParam> {
-    context: AudioContext;
-    id: string;
-    node: AudioNode | undefined;
-    linkedTo: AudioGraphNode<AudioParam>[];
-    linkedFrom?: AudioGraphNode<AudioParam>[];
-    parameters: Partial<Parameters>;
-    isPlaying: boolean;
-    
-    start: () => void;
-    stop: () => void;
-};
 
 export interface AudioGraphLink {
     id: string;
