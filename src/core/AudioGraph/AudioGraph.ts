@@ -10,16 +10,23 @@ export type FindLink = (fromId: string, toId: string) => number;
 export class AudioGraphNode<Node = AudioNode, Parameters = Record<string, any>> {
     protected readonly context: AudioContext;
     public readonly id: string;
-    protected node: Node | undefined;
+    public node: Node | undefined;
     public readonly linkedFrom: () => AudioGraphNode[] = () => this.graph.links.filter((link) => link.to.id === this.id).map((link) => link.to);
     public readonly linkedTo: () => AudioGraphNode[] = () => this.graph.links.filter((link) => link.from.id === this.id).map((link) => link.from);
     public parameters: Partial<Parameters>;
     protected playing: boolean;
-    public get isPlaying() {return this.playing}
+    public get isPlaying() { return this.playing }
     private graph: AudioGraph;
 
-    start = () => { this.playing = true };
-    stop = () => { this.playing = false };
+    start = () => {
+        this.onStart(); this.linkedTo().forEach((node) => {
+            node.node && (this.node as AudioNode)?.connect(node.node);
+        });
+        this.playing = true;
+    };
+    stop = () => { this.onStop(); this.playing = false; };
+    onStart = () => { };
+    onStop = () => { };
 
     constructor(context: AudioContext, graph: AudioGraph) {
         this.graph = graph;
@@ -31,22 +38,14 @@ export class AudioGraphNode<Node = AudioNode, Parameters = Record<string, any>> 
 }
 
 export class AudioGraphNodeOscillator extends AudioGraphNode<OscillatorNode, OscillatorOptions> {
-    start = () => {
-        this.node = new OscillatorNode(this.context, this.parameters);
-        this.node.start();
-        this.playing = true;
-    }
-
-    stop = () => {
-        this.node?.stop();
-        this.playing = false;
-    };
+    onStart = () => this.node = new OscillatorNode(this.context, this.parameters);
+    onStop = () => this.node?.stop();
 
     constructor(context: AudioContext, graph: AudioGraph) {
         super(context, graph);
         this.parameters = {
             detune: 0,
-            frequency: 0,
+            frequency: 3000,
             periodicWave: undefined,
             type: 'sawtooth'
         };
@@ -54,15 +53,30 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<OscillatorNode, Osc
 }
 
 export class AudioGraphNodeGain extends AudioGraphNode<GainNode, GainOptions> {
+    onStart = () => this.node = new GainNode(this.context, this.parameters);
+
     constructor(context: AudioContext, graph: AudioGraph) {
         super(context, graph);
         this.parameters = {
-            gain: 0,
+            gain: 200,
         }
     }
 }
 
+export class AudioGraphNodeOutput extends AudioGraphNode<AudioContext, GainOptions> {
+    constructor(context: AudioContext, graph: AudioGraph) {
+        super(context, graph);
+    }
+}
+
+
 export class AudioGraph {
+    play = () => {
+        this.audioContext.resume();
+        this.nodes.forEach((node) => node.start());
+
+            console.log("Should be playing...")
+    }
     private audioContext: AudioContext;
     public readonly nodes: AudioGraphNode[];
     public readonly links: AudioGraphLink[];
@@ -75,6 +89,9 @@ export class AudioGraph {
                 break
             case AudioGraphNodes.Gain:
                 newNode = new AudioGraphNodeGain(this.audioContext, this)
+                break
+            case AudioGraphNodes.Output:
+                newNode = new AudioGraphNodeOutput(this.audioContext, this) as any;
                 break
             default:
                 throw (`Could not add audio graph node, type unknown: ${type}`)

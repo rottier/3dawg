@@ -4,6 +4,7 @@ export * from "./AudioGraph";
 export enum AudioGraphNodes {
     Oscillator = "Oscillator",
     Gain = "Gain",
+    Output = "Output"
 }
 
 export interface AudioGraphLink {
