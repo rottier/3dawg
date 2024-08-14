@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   ReactFlow,
   Controls,
@@ -10,6 +10,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
 import { AudioGraph, AudioGraphNodes } from "../../core/AudioGraph";
+import { useDndMonitor, useDroppable } from '@dnd-kit/core';
+import { useCompositor } from "../Compositor";
 
 const audioGraph = new AudioGraph();
 const nodeId1 = audioGraph.addAudioNode(AudioGraphNodes.Oscillator);
@@ -44,8 +46,19 @@ const initialEdges = [
 const proOptions = { hideAttribution: true };
 
 export default function Editor() {
-  const [nodes, _, onNodesChange] = useNodesState(initialNodes);
+  useDndMonitor({
+      onDragEnd(event) { console.log(event.over) }
+  });
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const {setNodeRef} = useDroppable({
+    id: 'graph',
+  });
+  const compositor = useCompositor();
+
+  useEffect(() => {
+    setNodes(compositor.graph.nodes.map((node) => ({ id: node.id, position: { x: 0, y: 0 }, data: { label: `${node.type}`, audioNode: node } })));
+  }, [compositor])
 
   const onConnect = useCallback(
     (params: any) => setEdges((eds) => addEdge(params, eds)),
@@ -56,7 +69,7 @@ export default function Editor() {
     <>
       <button onClick={() => {audioGraph.play()}}>Start</button>
       <button onClick={() => {audioGraph.stop()}}>Stop</button>
-      <div className={`w-full h-full bg-black bg-opacity-30`}>
+      <div ref={setNodeRef} className={`w-full h-full bg-black bg-opacity-30`}>
         <ReactFlow
           className="text-blue"
           nodes={nodes}

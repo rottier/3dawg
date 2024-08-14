@@ -1,6 +1,7 @@
 import { IAudioNode, TContext, AudioContext, OscillatorNode, GainNode, IGainOptions, IOscillatorOptions, IAudioDestinationNode, isAnyAudioNode } from "standardized-audio-context";
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { uniqueId } from "lodash";
+import { Node } from "postcss";
 
 let globalAudioContext: AudioContext;
 
@@ -28,6 +29,7 @@ export class AudioGraphNode<
   public get node() { return this._node; }
   protected set node(node: Node | undefined) { this._node = node; }
   private _node: Node | undefined;
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
   /**
    * Retrieves an array of AudioGraphNode objects that are linked to this AudioGraphNode.
    * @returns {AudioGraphNode[]} The array of linked AudioGraphNode objects.
@@ -103,6 +105,7 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
   OscillatorNode<TContext>,
   IOscillatorOptions
 > {
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Oscillator;
   reconstruct = () =>
     (this.node = new OscillatorNode(this.context, this.parameters));
   onStart = () => this.node?.start();
@@ -121,6 +124,7 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
 }
 
 export class AudioGraphNodeGain extends AudioGraphNode<GainNode<TContext>, IGainOptions> {
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Gain;
   reconstruct = () => (this.node = new GainNode(this.context, this.parameters));
 
   constructor(context: AudioContext, graph: AudioGraph) {
@@ -135,6 +139,7 @@ export class AudioGraphNodeGain extends AudioGraphNode<GainNode<TContext>, IGain
 export class AudioGraphNodeOutput extends AudioGraphNode<
   IAudioDestinationNode<TContext>
 > {
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Output;
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
     this.node = this.context.destination;

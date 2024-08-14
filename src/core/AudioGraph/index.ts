@@ -2,6 +2,7 @@ import { AudioGraphNode } from "./AudioGraph";
 export * from "./AudioGraph";
 
 export enum AudioGraphNodes {
+    Invalid = "Invalid",
     Oscillator = "Oscillator",
     Gain = "Gain",
     Output = "Output"
