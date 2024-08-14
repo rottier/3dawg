@@ -1,13 +1,19 @@
+import { AudioContext, OscillatorNode, GainNode } from "standardized-audio-context-mock";
+vi.mock('standardized-audio-context', () => ({
+    AudioContext: AudioContext,
+    OscillatorNode: OscillatorNode,
+    GainNode: GainNode,
+  }));
+
 import { AudioGraphNodes } from ".";
 import { AudioGraph, AudioGraphNode, AudioGraphNodeOscillator } from "./AudioGraph";
-import { assert, beforeEach, describe, test } from 'vitest';
-import "web-audio-test-api";
+import { assert, beforeEach, describe, test, vi } from 'vitest';
 
 describe("AudioGraph", () => {
     let graph: AudioGraph;
 
     beforeEach(() => {
-        graph = new AudioGraph(new AudioContext());
+        graph = new AudioGraph();
     })
 
     test("addAudioNode should add a new audio node to the graph", () => {
@@ -47,9 +53,8 @@ describe("AudioGraph", () => {
 });
 
 describe("AudioGraphNode", () => {
-    const audioContext = new AudioContext();
-    const graph = new AudioGraph(audioContext);
-    const graphNode = new AudioGraphNode(audioContext, graph);
+    const graph = new AudioGraph();
+    const graphNode = new AudioGraphNode(graph.audioContext, graph);
 
     test("start should start the node", () => {
         graphNode.start();

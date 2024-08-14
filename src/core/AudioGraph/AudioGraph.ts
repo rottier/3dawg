@@ -1,5 +1,8 @@
+import { IAudioNode, TContext, AudioContext, OscillatorNode, GainNode, IGainOptions, IOscillatorOptions, IAudioDestinationNode, isAnyAudioNode } from "standardized-audio-context";
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { uniqueId } from "lodash";
+
+let globalAudioContext: AudioContext;
 
 export type AddAudioNode = (type: AudioGraphNodes) => string;
 export type RemoveAudioNode = (id: string) => boolean;
@@ -7,44 +10,67 @@ export type LinkNodes = (fromId: string, toId: string) => boolean;
 export type UnlinkNodes = (fromId: string, toId: string) => boolean;
 export type FindLink = (fromId: string, toId: string) => number;
 
+/**
+ * Represents a node in an audio graph.
+ *
+ * @template Node - The type of audio node.
+ * @template Parameters - The type of parameters associated with the node.
+ */
 export class AudioGraphNode<
-  Node = AudioNode,
-  Parameters = Record<string, any>
+  Node extends IAudioNode<TContext> = IAudioNode<TContext>,
+  Parameters extends Record<string, any> = Record<string, any>
 > {
+  /**
+   * The audio context used by the audio graph.
+   */
   protected readonly context: AudioContext;
   public readonly id: string;
-  public node: Node | undefined;
+  public get node() { return this._node; }
+  protected set node(node: Node | undefined) { this._node = node; }
+  private _node: Node | undefined;
+  /**
+   * Retrieves an array of AudioGraphNode objects that are linked to this AudioGraphNode.
+   * @returns {AudioGraphNode[]} The array of linked AudioGraphNode objects.
+   */
   public readonly linkedFrom: () => AudioGraphNode[] = () =>
     this.graph.links
       .filter((link) => link.to.id === this.id)
       .map((link) => link.from);
+  /**
+   * Returns an array of AudioGraphNode objects that are linked to this AudioGraphNode.
+   * 
+   * @returns {AudioGraphNode[]} The array of linked AudioGraphNode objects.
+   */
   public readonly linkedTo: () => AudioGraphNode[] = () =>
     this.graph.links
       .filter((link) => link.from.id === this.id)
       .map((link) => link.to);
   public parameters: Partial<Parameters>;
-  protected playing: boolean;
+  public playing: boolean;
   public get isPlaying() {
     return this.playing;
   }
   private graph: AudioGraph;
 
   start() {
-    if (this.playing) this.stop();
-
-    this.beforeStart();
+    if (this.isPlaying) {
+      this.stop();
+      this.reconstruct();
+    }
 
     const linkedTo = this.linkedTo();
 
     for (let i = 0; i < linkedTo.length; i++) {
-      const element = linkedTo[i];
+      const to = linkedTo[i];
 
-      if (
-        this.node instanceof AudioNode &&
-        element.node instanceof AudioNode &&
-        "connect" in this.node
+      if (isAnyAudioNode(to.node) &&
+        isAnyAudioNode(this.node)
       ) {
-        this.node.connect(element.node!);
+        try {
+          this.node.connect(to.node);
+        } catch (error) {
+          console.error(error);
+        }
       }
     }
 
@@ -56,14 +82,13 @@ export class AudioGraphNode<
   stop = () => {
     if (!this.playing) return;
 
-    this.beforeStop();
     this.playing = false;
     this.onStop();
+    this.reconstruct();
   };
-  beforeStart = () => {};
-  onStart = () => {};
-  beforeStop = () => {};
-  onStop = () => {};
+  reconstruct = () => { };
+  onStart = () => { };
+  onStop = () => { };
 
   constructor(context: AudioContext, graph: AudioGraph) {
     this.graph = graph;
@@ -75,10 +100,10 @@ export class AudioGraphNode<
 }
 
 export class AudioGraphNodeOscillator extends AudioGraphNode<
-  OscillatorNode,
-  OscillatorOptions
+  OscillatorNode<TContext>,
+  IOscillatorOptions
 > {
-  beforeStart = () =>
+  reconstruct = () =>
     (this.node = new OscillatorNode(this.context, this.parameters));
   onStart = () => this.node?.start();
   onStop = () => this.node?.stop();
@@ -91,28 +116,25 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
       periodicWave: undefined,
       type: "sawtooth",
     };
-    this.node = new OscillatorNode(context, this.parameters);
+    this.reconstruct();
   }
 }
 
-export class AudioGraphNodeGain extends AudioGraphNode<GainNode, GainOptions> {
-  beforeStart = () => (this.node = new GainNode(this.context, this.parameters));
+export class AudioGraphNodeGain extends AudioGraphNode<GainNode<TContext>, IGainOptions> {
+  reconstruct = () => (this.node = new GainNode(this.context, this.parameters));
 
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
     this.parameters = {
       gain: 1,
     };
-    this.node = new GainNode(context, this.parameters);
+    this.reconstruct();
   }
 }
 
 export class AudioGraphNodeOutput extends AudioGraphNode<
-  AudioDestinationNode,
-  GainOptions
+  IAudioDestinationNode<TContext>
 > {
-  beforeStart = () => (this.node = this.context.destination);
-
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
     this.node = this.context.destination;
@@ -120,14 +142,24 @@ export class AudioGraphNodeOutput extends AudioGraphNode<
 }
 
 export class AudioGraph {
+  playing = false;
   play() {
-    console.log(this.audioContext.suspend())
-    if (this.audioContext.state === "suspended") {
+    if (this.audioContext.state !== "running" && !this.playing) {
       this.audioContext.resume();
     }
     this.nodes.forEach((node) => node.start());
+
+    this.playing = true;
   }
-  private audioContext: AudioContext;
+  stop() {
+    if (this.audioContext.state === "running" && this.playing) {
+      this.audioContext.suspend();
+    }
+    this.nodes.forEach((node) => node.stop());
+
+    this.playing = false;
+  }
+  public audioContext: AudioContext;
   public readonly nodes: AudioGraphNode[];
   public readonly links: AudioGraphLink[];
   addAudioNode: AddAudioNode = (type) => {
@@ -215,9 +247,19 @@ export class AudioGraph {
     return success;
   };
 
-  constructor(context: AudioContext) {
+  constructor(context?: AudioContext) {
     this.nodes = [];
     this.links = [];
-    this.audioContext = context;
+    this.audioContext = context || globalAudioContext;
+
+    // Allow to supply a custom audio context
+    if (context)
+      this.audioContext = context;
+    else {
+      if (!globalAudioContext) // Create a global audio context if none exists
+        globalAudioContext = new AudioContext();
+      this.audioContext = globalAudioContext;
+
+    }
   }
 }

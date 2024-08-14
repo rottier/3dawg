@@ -11,7 +11,7 @@ import "@xyflow/react/dist/style.css";
 import "./Editor.css";
 import { AudioGraph, AudioGraphNodes } from "../../core/AudioGraph";
 
-const audioGraph = new AudioGraph(new AudioContext());
+const audioGraph = new AudioGraph();
 const nodeId1 = audioGraph.addAudioNode(AudioGraphNodes.Oscillator);
 const nodeId2 = audioGraph.addAudioNode(AudioGraphNodes.Gain);
 const nodeId3 = audioGraph.addAudioNode(AudioGraphNodes.Output);
@@ -55,6 +55,7 @@ export default function Editor() {
   return (
     <>
       <button onClick={() => {audioGraph.play()}}>Start</button>
+      <button onClick={() => {audioGraph.stop()}}>Stop</button>
       <div className={`w-full h-full bg-black bg-opacity-30`}>
         <ReactFlow
           className="text-blue"
