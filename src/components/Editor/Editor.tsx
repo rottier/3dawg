@@ -12,44 +12,49 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
 import {
-  AudioGraphNode,
   AudioGraphNodes,
 } from "../../core/AudioGraph";
 import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { useComposer } from "../Composer";
+import { AudioGraphFlowNode } from ".";
+import { NodeTypes } from "./Nodes";
 
 const proOptions = { hideAttribution: true };
 
-const Editor = () => {
+export function Editor() {
   const composer = useComposer();
   const reactFlow = useReactFlow();
   useDndMonitor({
     onDragEnd(event) {
       if (event.over?.id === "graph") {
+        const nodeType = event.active.id as AudioGraphNodes;
         const nodeId = composer.graph.addAudioNode(
-          event.active.id as AudioGraphNodes
+          nodeType
         );
         const node = composer.graph.getAudioNode(nodeId);
-        const newNodes = [
-          ...nodes,
-          {
-            id: nodeId,
-            position: reactFlow.screenToFlowPosition({
-              x: event.active.rect?.current?.translated?.left || 0,
-              y: event.active.rect?.current?.translated?.top || 0,
-            }),
-            data: {
-              label: `${node?.type as AudioGraphNodes}`,
-              audioNode: node as AudioGraphNode,
+        
+        if (node) {
+          const newNodes = [
+            ...nodes,
+            {
+              id: nodeId,
+              type: nodeType,
+              position: reactFlow.screenToFlowPosition({
+                x: event.active.rect?.current?.translated?.left || 0,
+                y: event.active.rect?.current?.translated?.top || 0,
+              }),
+              data: {
+                audioNode: node,
+              },
             },
-          },
-        ];
-        setNodes(newNodes);
+          ];
+          setNodes(newNodes);
+        }
       }
     },
   });
   const [rerender, setRerender] = useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<AudioGraphFlowNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<{
     id: string;
     source: string;
@@ -86,6 +91,7 @@ const Editor = () => {
       <div ref={setNodeRef} className={`w-full h-full bg-black bg-opacity-30`}>
         <ReactFlow
           className="text-blue"
+          nodeTypes={NodeTypes}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -111,7 +117,7 @@ const Editor = () => {
   );
 };
 
-export default function Flow() {
+export default function EditorWithFlow() {
   return (
     <ReactFlowProvider>
       <Editor />

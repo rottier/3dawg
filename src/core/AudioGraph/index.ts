@@ -8,6 +8,8 @@ export enum AudioGraphNodes {
     Output = "Output"
 }
 
+export type AudioGraphNodeType = keyof typeof AudioGraphNodes;
+
 export interface AudioGraphLink {
     id: string;
     from: AudioGraphNode;

@@ -1,7 +1,9 @@
-import React, { createContext, ReactNode, useContext, useRef, useState } from 'react';
-import { AudioGraph, AudioGraphNodes } from '../core/AudioGraph';
+import React, { createContext, FunctionComponent, ReactNode, useContext, useEffect, useState } from 'react';
+import { AudioGraph, AudioGraphNodes, AudioGraphNodeType } from '../core/AudioGraph';
 import { DndContext, DragOverlay, useDndMonitor } from '@dnd-kit/core';
-import TrayItem from './Tray/TrayItem';
+import { NodeTypes } from './Editor/Nodes';
+import { ReactFlowProvider } from '@xyflow/react';
+import { over } from 'lodash';
 
 type ComposerProviderType = {
     graph: AudioGraph;
@@ -15,29 +17,39 @@ const ComposerContext = createContext<ComposerProviderType | undefined>(undefine
 
 
 const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children }) => {
+    const [dragSuccess, setDragSuccess] = useState(false);
     const [graph] = useState(new AudioGraph());
+    const [overlayComponent, setOverlayComponent] = useState<ReactNode | null>(null)
     const [activeId, setActiveId] = useState<string | null>(null);
     useDndMonitor({
-        onDragStart(event) { setActiveId(String(event.active.id)) },
+        onDragStart(event) { setDragSuccess(false); setActiveId(String(event.active.id)) },
         onDragEnd(event) {
             setActiveId(null);
             if (event.over?.id === 'graph') {
+                setDragSuccess(true);
                 // graph.addAudioNode(event.active.id as AudioGraphNodes);
             }
         }
     });
+
+    useEffect(() => {
+        if (activeId && Object.keys(NodeTypes).includes(activeId)) {
+            // Type assertion to ensure correct key type
+            const component = NodeTypes[activeId as keyof typeof NodeTypes];
+            setOverlayComponent(React.createElement(component));
+        } else {
+            setOverlayComponent(null);
+        }
+    }, [activeId]);
 
     return (
         <>
             <ComposerContext.Provider value={{ graph }}>
                 {children}
             </ComposerContext.Provider>
-            <DragOverlay>
-                {activeId ? (
-                    <ul className="menu"><TrayItem node={activeId as AudioGraphNodes} /></ul>
-
-                ) : null}
-            </DragOverlay></>
+            {!dragSuccess && <DragOverlay>
+                {overlayComponent && <div className="opacity-50">{overlayComponent}</div>}
+            </DragOverlay>}</>
 
     );
 };
