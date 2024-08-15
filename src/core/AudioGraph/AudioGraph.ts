@@ -24,7 +24,7 @@ export class AudioGraphNode<
   /**
    * The audio context used by the audio graph.
    */
-  protected readonly context: AudioContext;
+  public readonly context: AudioContext;
   public readonly id: string;
   public get node() { return this._node; }
   protected set node(node: Node | undefined) { this._node = node; }
