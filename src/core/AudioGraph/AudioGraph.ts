@@ -188,6 +188,10 @@ export class AudioGraph {
     return newNode.id;
   };
 
+  getAudioNode: (id: string) => AudioGraphNode | undefined = (id) => {
+    return this.nodes.find((node) => node.id === id);
+  };
+
   removeAudioNode: RemoveAudioNode = (id) => {
     const i = this.nodes.findIndex((node) => node.id === id);
     if (i !== -1) {

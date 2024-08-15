@@ -1,15 +1,17 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
   Controls,
   useNodesState,
   useEdgesState,
   addEdge,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
-import { AudioGraph, AudioGraphNodes } from "../../core/AudioGraph";
+import { AudioGraph, AudioGraphNode, AudioGraphNodes } from "../../core/AudioGraph";
 import { useDndMonitor, useDroppable } from '@dnd-kit/core';
 import { useCompositor } from "../Compositor";
 
@@ -45,31 +47,38 @@ const initialEdges = [
 ];
 const proOptions = { hideAttribution: true };
 
-export default function Editor() {
+const Editor = () => {
+  const reactFlow = useReactFlow();
   useDndMonitor({
-      onDragEnd(event) { console.log(event.over) }
+      onDragEnd(event) {
+        if (event.over?.id === 'graph') {
+            const nodeId = compositor.graph.addAudioNode(event.active.id as AudioGraphNodes);
+            const node = compositor.graph.getAudioNode(nodeId);
+            const newNodes = [...nodes, {id: nodeId, position: reactFlow.screenToFlowPosition(pointerPosition), data: { label: `${node?.type as AudioGraphNodes}`, audioNode: node as AudioGraphNode }}]
+            setNodes(newNodes);
+      }
+       }
   });
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [pointerPosition, setPointerPosition] = useState({x: 0, y: 0});
   const {setNodeRef} = useDroppable({
     id: 'graph',
   });
   const compositor = useCompositor();
-
-  useEffect(() => {
-    setNodes(compositor.graph.nodes.map((node) => ({ id: node.id, position: { x: 0, y: 0 }, data: { label: `${node.type}`, audioNode: node } })));
-  }, [compositor])
 
   const onConnect = useCallback(
     (params: any) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
+
+
   return (
     <>
       <button onClick={() => {audioGraph.play()}}>Start</button>
       <button onClick={() => {audioGraph.stop()}}>Stop</button>
-      <div ref={setNodeRef} className={`w-full h-full bg-black bg-opacity-30`}>
+      <div ref={setNodeRef} onPointerMove={(e) => setPointerPosition({x: e.clientX, y: e.clientY})} className={`w-full h-full bg-black bg-opacity-30`}>
         <ReactFlow
           className="text-blue"
           nodes={nodes}
@@ -85,4 +94,9 @@ export default function Editor() {
       </div>
     </>
   );
+}
+
+export default function Flow() {
+  
+  return <ReactFlowProvider><Editor/></ReactFlowProvider> ;
 }

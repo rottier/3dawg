@@ -22,7 +22,7 @@ const CompositorProviderInternal: React.FC<CompositorProviderProps> = ({ childre
         onDragEnd(event) {
             setActiveId(null);
             if (event.over?.id === 'graph') {
-                graph.addAudioNode(event.active.id as AudioGraphNodes);
+                // graph.addAudioNode(event.active.id as AudioGraphNodes);
             }
         }
     });
