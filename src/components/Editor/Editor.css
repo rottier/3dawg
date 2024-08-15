@@ -2,3 +2,7 @@
     background-color: #39C7B7;
     border: 0;
 }
+
+.react-flow__handle {
+    padding: 3px;
+}

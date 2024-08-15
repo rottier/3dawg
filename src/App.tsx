@@ -3,14 +3,14 @@ import TimelineComponent from "./components/Timeline";
 import Editor from "./components/Editor/Editor";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import Tray from "./components/Tray/Tray";
-import { CompositorProvider } from "./components/Compositor";
+import { ComposerProvider } from "./components/Composer";
 
 function App() {
 
   return (
     <main className="w-dvw h-dvh justify-between">
       <div className="fixed w-full h-full bg-blue pointer-events-none -z-10" />
-      <CompositorProvider>
+      <ComposerProvider>
         <PanelGroup direction="horizontal">
           <Panel defaultSize={80} maxSize={80}>
             <PanelGroup direction="vertical">
@@ -71,7 +71,7 @@ function App() {
             <Tray />
           </Panel>
         </PanelGroup>
-      </CompositorProvider>
+      </ComposerProvider>
     </main>
   );
 }

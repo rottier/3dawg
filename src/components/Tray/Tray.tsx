@@ -13,7 +13,7 @@ const Tray: FunctionComponent<TrayProps> = () => {
             <details open>
                 <summary>Audio Nodes</summary>
                 <ul>
-                    {Object.values(AudioGraphNodes).map((node, index) => (<TrayItem key={index} node={node} />
+                    {Object.values(AudioGraphNodes).map((node, index) => (node !== AudioGraphNodes.Invalid && <TrayItem key={index} node={node} />
                     ))}
                 </ul>
             </details>

@@ -231,12 +231,15 @@ export class AudioGraph {
           to: toNode,
           muted: false,
         });
+        this.onLinksChanged(this.links);
         return true;
       }
     }
 
     return false;
   };
+
+  public onLinksChanged: (links: AudioGraphLink[]) => void = () => { };
 
   findLinkIndex: FindLink = (fromId, toId) =>
     this.links.findIndex(
@@ -250,6 +253,7 @@ export class AudioGraph {
     while (linkIndex > -1) {
       this.links.splice(linkIndex, 1);
       success = true;
+      this.onLinksChanged(this.links);
       linkIndex = this.findLinkIndex(fromId, toId);
     }
 

@@ -3,18 +3,18 @@ import { AudioGraph, AudioGraphNodes } from '../core/AudioGraph';
 import { DndContext, DragOverlay, useDndMonitor } from '@dnd-kit/core';
 import TrayItem from './Tray/TrayItem';
 
-type CompositorProviderType = {
+type ComposerProviderType = {
     graph: AudioGraph;
 };
 
-type CompositorProviderProps = {
+type ComposerProviderProps = {
     children: ReactNode;
 };
 
-const CompositorContext = createContext<CompositorProviderType | undefined>(undefined);
+const ComposerContext = createContext<ComposerProviderType | undefined>(undefined);
 
 
-const CompositorProviderInternal: React.FC<CompositorProviderProps> = ({ children }) => {
+const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children }) => {
     const [graph] = useState(new AudioGraph());
     const [activeId, setActiveId] = useState<string | null>(null);
     useDndMonitor({
@@ -29,9 +29,9 @@ const CompositorProviderInternal: React.FC<CompositorProviderProps> = ({ childre
 
     return (
         <>
-            <CompositorContext.Provider value={{ graph }}>
+            <ComposerContext.Provider value={{ graph }}>
                 {children}
-            </CompositorContext.Provider>
+            </ComposerContext.Provider>
             <DragOverlay>
                 {activeId ? (
                     <ul className="menu"><TrayItem node={activeId as AudioGraphNodes} /></ul>
@@ -42,22 +42,22 @@ const CompositorProviderInternal: React.FC<CompositorProviderProps> = ({ childre
     );
 };
 
-const CompositorProvider: React.FC<CompositorProviderProps> = ({ children }) => {
+const ComposerProvider: React.FC<ComposerProviderProps> = ({ children }) => {
 
     return (
         <DndContext>
-            <CompositorProviderInternal>
+            <ComposerProviderInternal>
                 {children}
-            </CompositorProviderInternal>
+            </ComposerProviderInternal>
         </DndContext>
 
     );
 };
-const useCompositor = (): CompositorProviderType => {
-    const context = useContext(CompositorContext);
+const useComposer = (): ComposerProviderType => {
+    const context = useContext(ComposerContext);
     if (!context) {
-        throw new Error("useCompositor must be used within a CompositorProvider");
+        throw new Error("useComposer must be used within a ComposerProvider");
     }
     return context;
 };
-export { CompositorContext, CompositorProvider, useCompositor };
+export { ComposerContext, ComposerProvider, useComposer };
