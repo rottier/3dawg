@@ -1,4 +1,15 @@
-import { IAudioNode, TContext, AudioContext, OscillatorNode, GainNode, IGainOptions, IOscillatorOptions, IAudioDestinationNode, isAnyAudioNode } from "standardized-audio-context";
+import {
+  IAudioNode,
+  IAudioParam,
+  TContext,
+  AudioContext,
+  OscillatorNode,
+  GainNode,
+  IGainOptions,
+  IOscillatorOptions,
+  IAudioDestinationNode,
+  isAnyAudioNode,
+} from "standardized-audio-context";
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { uniqueId } from "lodash";
 import { Node } from "postcss";
@@ -26,8 +37,12 @@ export class AudioGraphNode<
    */
   public readonly context: AudioContext;
   public readonly id: string;
-  public get node() { return this._node; }
-  protected set node(node: Node | undefined) { this._node = node; }
+  public get node() {
+    return this._node;
+  }
+  protected set node(node: Node | undefined) {
+    this._node = node;
+  }
   private _node: Node | undefined;
   public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
   /**
@@ -40,14 +55,43 @@ export class AudioGraphNode<
       .map((link) => link.from);
   /**
    * Returns an array of AudioGraphNode objects that are linked to this AudioGraphNode.
-   * 
+   *
    * @returns {AudioGraphNode[]} The array of linked AudioGraphNode objects.
    */
   public readonly linkedTo: () => AudioGraphNode[] = () =>
     this.graph.links
       .filter((link) => link.from.id === this.id)
       .map((link) => link.to);
-  public parameters: Partial<Parameters>;
+  protected _parameters: Partial<Parameters>;
+  public get parameters() {
+    return this._parameters;
+  }
+  public set parameters(parameters: Partial<Parameters>) {
+    Object.entries(parameters).forEach(([key, value]) => {
+      if (key in this._parameters) {
+        this._parameters[key as keyof Parameters] = value;
+        if (this.node && this.playing) {
+
+          console.log(key in this.node, "exists?", this.node, value);
+
+          if (key in this.node && typeof value === "number") {
+            console.log("5");
+
+            //@ts-ignore
+            const linearRamp = this.node[key].linearRampToValueAtTime;
+
+            if (linearRamp) {
+              linearRamp(Number(value), this.context.currentTime);
+            }
+          }
+        } else if (key in this.node!) {
+          console.log("6");
+          (this.node as any)[key].value = value;
+        }
+      }
+    });
+  }
+
   public playing: boolean;
   public get isPlaying() {
     return this.playing;
@@ -65,9 +109,7 @@ export class AudioGraphNode<
     for (let i = 0; i < linkedTo.length; i++) {
       const to = linkedTo[i];
 
-      if (isAnyAudioNode(to.node) &&
-        isAnyAudioNode(this.node)
-      ) {
+      if (isAnyAudioNode(to.node) && isAnyAudioNode(this.node)) {
         try {
           this.node.connect(to.node);
         } catch (error) {
@@ -88,16 +130,16 @@ export class AudioGraphNode<
     this.onStop();
     this.reconstruct();
   };
-  reconstruct = () => { };
-  onStart = () => { };
-  onStop = () => { };
+  reconstruct = () => {};
+  onStart = () => {};
+  onStop = () => {};
 
   constructor(context: AudioContext, graph: AudioGraph) {
     this.graph = graph;
     this.context = context;
     this.id = uniqueId();
     this.playing = false;
-    this.parameters = {};
+    this._parameters = {};
   }
 }
 
@@ -113,9 +155,9 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
 
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
-    this.parameters = {
+    this._parameters = {
       detune: 0,
-      frequency: 440,
+      frequency: 20,
       periodicWave: undefined,
       type: "sawtooth",
     };
@@ -123,14 +165,17 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
   }
 }
 
-export class AudioGraphNodeGain extends AudioGraphNode<GainNode<TContext>, IGainOptions> {
+export class AudioGraphNodeGain extends AudioGraphNode<
+  GainNode<TContext>,
+  IGainOptions
+> {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Gain;
   reconstruct = () => (this.node = new GainNode(this.context, this.parameters));
 
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
-    this.parameters = {
-      gain: 1,
+    this._parameters = {
+      gain: 0.5,
     };
     this.reconstruct();
   }
@@ -184,6 +229,9 @@ export class AudioGraph {
         throw `Could not add audio graph node, type unknown: ${type}`;
     }
 
+    if (this.playing)
+      newNode.start();
+
     this.nodes.push(newNode);
     return newNode.id;
   };
@@ -195,7 +243,10 @@ export class AudioGraph {
   removeAudioNode: RemoveAudioNode = (id) => {
     const i = this.nodes.findIndex((node) => node.id === id);
     if (i !== -1) {
-      this.nodes.splice(i, 1);
+      const foundNode = this.nodes.splice(i, 1)[0];
+
+      if (this.playing)
+        foundNode.stop();
 
       // Also remove links when removing a node
       for (let j = this.links.length - 1; j > -1; j--) {
@@ -231,6 +282,11 @@ export class AudioGraph {
           to: toNode,
           muted: false,
         });
+        if (this.playing) {
+          this.stop();
+          this.play();
+        }
+
         this.onLinksChanged(this.links);
         return true;
       }
@@ -239,7 +295,7 @@ export class AudioGraph {
     return false;
   };
 
-  public onLinksChanged: (links: AudioGraphLink[]) => void = () => { };
+  public onLinksChanged: (links: AudioGraphLink[]) => void = () => {};
 
   findLinkIndex: FindLink = (fromId, toId) =>
     this.links.findIndex(
@@ -266,13 +322,12 @@ export class AudioGraph {
     this.audioContext = context || globalAudioContext;
 
     // Allow to supply a custom audio context
-    if (context)
-      this.audioContext = context;
+    if (context) this.audioContext = context;
     else {
-      if (!globalAudioContext) // Create a global audio context if none exists
+      if (!globalAudioContext)
+        // Create a global audio context if none exists
         globalAudioContext = new AudioContext();
       this.audioContext = globalAudioContext;
-
     }
   }
 }

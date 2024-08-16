@@ -4,10 +4,10 @@
 
 @layer base {
     a {
-      @apply text-cyan !important;
+      @apply text-accent !important;
     }
 
     summary {
-      @apply text-red !important;
+      @apply text-primary !important;
     }
   }

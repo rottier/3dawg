@@ -1,31 +1,26 @@
-import { FunctionComponent, useEffect, useState } from 'react';
-import { Position } from '@xyflow/react';
-import ConditionalHandle from '../../Handles/ConditionalHandle';
-import { AudioNodeProps } from '.';
-import { AudioGraphNodeOscillator } from '../../../../core/AudioGraph';
+import { FunctionComponent } from "react";
+import { AudioNodeProps } from "../.";
+import { AudioGraphNodeOscillator } from "../../../../core/AudioGraph";
+import { AudioNodeWrapper } from "../AudioNodeWrapper";
+import { useAudioParameter } from "../../../../hooks/useAudioParameter";
 
-export const Oscillator: FunctionComponent = (props: AudioNodeProps<AudioGraphNodeOscillator>) => {
-  const [audioNode, setAudioNode] = useState<AudioGraphNodeOscillator | null>(null);
-
-  useEffect(() => {
-    if (props.data?.audioNode) {
-      setAudioNode(props.data.audioNode);
-    }
-  }, [props.data?.audioNode])
-
-  useEffect(() => {
-    if (audioNode) {
-      console.log(audioNode.node?.frequency)
-    }
-  }, [audioNode])
+export const Oscillator: FunctionComponent = (
+  props: AudioNodeProps<AudioGraphNodeOscillator>
+) => {
+  const [frequency, setFrequency] = useAudioParameter<AudioGraphNodeOscillator>(props.data?.audioNode!, 'frequency');
 
   return (
-    <>
-      <div className='bg-cyan w-fit p-2 h-fit rounded text-blue' >
-        <h2>Oscillator</h2>
-        <input type="range" min={0} max={1000} defaultValue={audioNode?.node?.frequency.value} onChange={(e) => {audioNode?.node?.frequency.linearRampToValueAtTime(e.target.valueAsNumber, audioNode.context.currentTime)}} className="range" />
+    <AudioNodeWrapper header="Oscillator" to={true}>
+      <div className="w-72 h-fit">
+        <input
+          type="range"
+          min={20}
+          max={15000}
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.valueAsNumber)}
+          className="range"
+        />
       </div>
-      <ConditionalHandle type="source" position={Position.Bottom} />
-    </>
+    </AudioNodeWrapper>
   );
-}
+};

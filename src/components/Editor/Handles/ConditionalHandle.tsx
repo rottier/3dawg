@@ -9,7 +9,7 @@ const ConditionalHandle: FunctionComponent<HandleProps> = ({ ...restProps }) => 
         const updateNodeInternals = useUpdateNodeInternals();
         updateNodeInternals(restProps.id!)
     } catch (error) {
-        handle = <div {...restProps} />;
+        handle = <></>;
     }
 
     return handle;

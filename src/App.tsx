@@ -9,7 +9,7 @@ function App() {
 
   return (
     <main className="w-dvw h-dvh justify-between">
-      <div className="fixed w-full h-full bg-blue pointer-events-none -z-10" />
+      <div className="fixed w-full h-full bg-secondary pointer-events-none -z-10" />
       <ComposerProvider>
         <PanelGroup direction="horizontal">
           <Panel defaultSize={80} maxSize={80}>

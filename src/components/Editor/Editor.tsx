@@ -11,9 +11,7 @@ import {
 
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
-import {
-  AudioGraphNodes,
-} from "../../core/AudioGraph";
+import { AudioGraphNodes } from "../../core/AudioGraph";
 import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { useComposer } from "../Composer";
 import { AudioGraphFlowNode } from ".";
@@ -28,11 +26,9 @@ export function Editor() {
     onDragEnd(event) {
       if (event.over?.id === "graph") {
         const nodeType = event.active.id as AudioGraphNodes;
-        const nodeId = composer.graph.addAudioNode(
-          nodeType
-        );
+        const nodeId = composer.graph.addAudioNode(nodeType);
         const node = composer.graph.getAudioNode(nodeId);
-        
+
         if (node) {
           const newNodes = [
             ...nodes,
@@ -54,7 +50,9 @@ export function Editor() {
     },
   });
   const [rerender, setRerender] = useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState<AudioGraphFlowNode>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<AudioGraphFlowNode>(
+    []
+  );
   const [edges, setEdges, onEdgesChange] = useEdgesState<{
     id: string;
     source: string;
@@ -65,8 +63,10 @@ export function Editor() {
   });
 
   useEffect(() => {
-  composer.graph.onLinksChanged = onLinksChanged;
-  }, [composer.graph])
+    return () => {
+      composer.graph.stop();
+    };
+  }, []);
 
   const onConnect = useCallback<OnConnect>(
     (params) => {
@@ -75,22 +75,23 @@ export function Editor() {
     [composer.graph]
   );
 
-  const onLinksChanged = useCallback(
-    () => {
-      let newEdges: typeof edges = [];
-      composer.graph.links.forEach((link) =>
-        newEdges.push({ id: link.id, source: link.from.id, target: link.to.id })
-      );
-      setEdges(newEdges);
-    },
-    [composer.graph, setEdges]
-  );
+  useEffect(() => {
+    composer.graph.onLinksChanged = onLinksChanged;
+  }, [composer.graph]);
+
+  const onLinksChanged = useCallback(() => {
+    let newEdges: typeof edges = [];
+    composer.graph.links.forEach((link) =>
+      newEdges.push({ id: link.id, source: link.from.id, target: link.to.id })
+    );
+    setEdges(newEdges);
+  }, [composer.graph, setEdges]);
 
   return (
     <div className={"w-full h-full flex flex-col"}>
-      <div ref={setNodeRef} className={`w-full h-full bg-black bg-opacity-30`}>
+      <div ref={setNodeRef} className={`w-full h-full bg-black bg-opacity-60`}>
         <ReactFlow
-          className="text-blue"
+          className="!text-secondary"
           nodeTypes={NodeTypes}
           nodes={nodes}
           edges={edges}
@@ -104,9 +105,12 @@ export function Editor() {
         </ReactFlow>
       </div>
       <div className="flex flex-row gap-1 p-1">
-        <button className="btn btn-wide btn-accent"
+        <button
+          className="btn btn-wide btn-accent"
           onClick={() => {
-            composer.graph.playing ? composer.graph.stop() : composer.graph.play();
+            composer.graph.playing
+              ? composer.graph.stop()
+              : composer.graph.play();
             setRerender(!rerender);
           }}
         >
@@ -115,7 +119,7 @@ export function Editor() {
       </div>
     </div>
   );
-};
+}
 
 export default function EditorWithFlow() {
   return (
