@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AudioGraphNode } from '../core/AudioGraph';
 
 export function useAudioParameter<T extends AudioGraphNode>(
-  audioNode: T | null,
+  audioNode: T | undefined,
   parameterName: keyof T['parameters'],
 ) {
   const [value, setValue] = useState<any>();
@@ -19,7 +19,6 @@ export function useAudioParameter<T extends AudioGraphNode>(
     setValue(newValue);
     if (audioNode && 'parameters' in audioNode) {
       audioNode.parameters = {
-        ...audioNode.parameters,
         [parameterName]: newValue
       };
     }

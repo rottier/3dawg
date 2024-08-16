@@ -16,6 +16,15 @@ import { Node } from "postcss";
 
 let globalAudioContext: AudioContext;
 
+interface IAudioParamNode {
+  setValueAtTime: (value: number, endTime: number) => void;
+  // other properties...
+}
+
+function hassetValueAtTime(node: any): node is IAudioParamNode {
+  return node && typeof node.setValueAtTime === 'function';
+}
+
 export type AddAudioNode = (type: AudioGraphNodes) => string;
 export type RemoveAudioNode = (id: string) => boolean;
 export type LinkNodes = (fromId: string, toId: string) => boolean;
@@ -71,21 +80,20 @@ export class AudioGraphNode<
       if (key in this._parameters) {
         this._parameters[key as keyof Parameters] = value;
         if (this.node && this.playing) {
+          const nodeAsRecord = this.node as Record<string, any>;
 
-          console.log(key in this.node, "exists?", this.node, value);
+          if (
+            key in this.node &&
+            typeof nodeAsRecord[key]?.setValueAtTime === 'function' &&
+            typeof value === "number"
+        ) {
+            const setValueAtTime = (this.node as any)[key].setValueAtTime as IAudioParamNode['setValueAtTime'];
 
-          if (key in this.node && typeof value === "number") {
-            console.log("5");
-
-            //@ts-ignore
-            const linearRamp = this.node[key].linearRampToValueAtTime;
-
-            if (linearRamp) {
-              linearRamp(Number(value), this.context.currentTime);
+            if (setValueAtTime) {
+              setValueAtTime(Number(value), this.context.currentTime);
             }
           }
         } else if (key in this.node!) {
-          console.log("6");
           (this.node as any)[key].value = value;
         }
       }
@@ -153,6 +161,7 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
   onStart = () => this.node?.start();
   onStop = () => this.node?.stop();
 
+
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
     this._parameters = {
@@ -161,6 +170,8 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
       periodicWave: undefined,
       type: "sawtooth",
     };
+  this.node?.frequency.setValueAtTime(0,0)
+
     this.reconstruct();
   }
 }
