@@ -3,6 +3,7 @@ import { AudioNodeProps } from "../.";
 import { AudioGraphNodeOscillator } from "../../../../core/AudioGraph";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioRange } from "../AudioParameters/Range";
+import { AudioKnob } from "../AudioParameters/Knob";
 
 export const Oscillator: FunctionComponent = (
   props: AudioNodeProps<AudioGraphNodeOscillator>
@@ -10,17 +11,21 @@ export const Oscillator: FunctionComponent = (
   return (
     <AudioNodeWrapper header="Oscillator" to={true}>
       <div className="w-72 h-fit flex flex-col gap-4">
-        <AudioRange<AudioGraphNodeOscillator>
+        <AudioKnob<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
           parameterName="frequency"
-          min={20}
-          max={15000}
+          valueStep={0.1}
+          valueMin={20}
+          valueMax={15000}
+          angleMin={-135 - 360}
+          angleMax={135 + 360}
+          logarithmic={true}
         />
         <AudioRange<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
           parameterName="detune"
-          min={-1200}
-          max={1200}
+          valueMin={-1200}
+          valueMax={1200}
         />
       </div>
     </AudioNodeWrapper>

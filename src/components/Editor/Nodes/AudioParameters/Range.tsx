@@ -5,17 +5,17 @@ import { useAudioParameter } from "../../../../hooks/useAudioParameter";
 interface AudioRangeProps<T extends AudioGraphNode> {
   audioNode: T | undefined;
   parameterName: keyof T["parameters"];
-  min: number;
-  max: number;
-  step?: number;
+  valueMin: number;
+  valueMax: number;
+  valueStep?: number;
 }
 
 export const AudioRange = <T extends AudioGraphNode>({
   audioNode,
   parameterName,
-  min,
-  max,
-  step = 1,
+  valueMin,
+  valueMax,
+  valueStep = 1,
 }: AudioRangeProps<T>): React.ReactElement => {
   const [value, setValue] = useAudioParameter<T>(audioNode, parameterName);
 
@@ -24,9 +24,9 @@ export const AudioRange = <T extends AudioGraphNode>({
         <label className="text-white capitalize w-32 text-ellipsis overflow-hidden font-mono">{String(parameterName)}</label>
     <input
       type="range"
-      min={min}
-      max={max}
-      step={step}
+      min={valueMin}
+      max={valueMax}
+      step={valueStep}
       value={value ?? 0}
       onChange={(e) => setValue(e.target.valueAsNumber)}
       className="range"
