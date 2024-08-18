@@ -23,15 +23,35 @@ const Knob: React.FC<KnobProps> = ({
 }) => {
   const knobRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [startY, setStartY] = useState<number>(0);
+  const [startRotation, setStartRotation] = useState<number>(0);
+  const [cumulativeRotation, setCumulativeRotation] = useState<number>(0);
   const [startValue, setStartValue] = useState<number>(0);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        const deltaY = startY - e.clientY;
-        const angleRange = angleMax - angleMin;
+      if (isDragging && knobRef.current) {
+        const rect = knobRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
+        const deltaX = e.clientX - centerX;
+        const deltaY = e.clientY - centerY;
+
+        const currentRotation = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+        let deltaRotation = currentRotation - startRotation;
+
+        // Normalize deltaRotation to be within [-180, 180] degrees
+        if (deltaRotation > 180) {
+          deltaRotation -= 360;
+        } else if (deltaRotation < -180) {
+          deltaRotation += 360;
+        }
+
+        const newCumulativeRotation = cumulativeRotation + deltaRotation;
+        setCumulativeRotation(newCumulativeRotation);
+        setStartRotation(currentRotation); // Update the startRotation for the next move event
+
+        const angleRange = angleMax - angleMin;
         let newValue: number;
         const range = valueMax - valueMin;
 
@@ -39,7 +59,7 @@ const Knob: React.FC<KnobProps> = ({
           const logMin = Math.log(valueMin);
           const logMax = Math.log(valueMax);
           const scale = (logMax - logMin) / angleRange;
-          const deltaLogValue = deltaY * scale;
+          const deltaLogValue = newCumulativeRotation * scale;
           const logNewValue = Math.log(startValue) + deltaLogValue;
 
           newValue = Math.exp(logNewValue);
@@ -50,7 +70,7 @@ const Knob: React.FC<KnobProps> = ({
               Math.log(1 + valueStep / 100)
           );
         } else {
-          newValue = startValue + (deltaY / angleRange) * range;
+          newValue = startValue + (newCumulativeRotation / angleRange) * range;
 
           // Apply linear step size
           newValue = Math.round(newValue / valueStep) * valueStep;
@@ -63,6 +83,8 @@ const Knob: React.FC<KnobProps> = ({
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setCumulativeRotation(0);
+      setStartRotation(0);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -72,9 +94,11 @@ const Knob: React.FC<KnobProps> = ({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
+    
   }, [
     isDragging,
-    startY,
+    startRotation,
+    cumulativeRotation,
     startValue,
     valueMin,
     valueMax,
@@ -86,9 +110,19 @@ const Knob: React.FC<KnobProps> = ({
   ]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    setStartY(e.clientY);
-    setStartValue(value);
+    if (knobRef.current) {
+      const rect = knobRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const deltaX = e.clientX - centerX;
+      const deltaY = e.clientY - centerY;
+
+      const initialRotation = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+      setIsDragging(true);
+      setStartRotation(initialRotation);
+      setStartValue(value);
+    }
   };
 
   const getRotation = (): number => {
@@ -116,7 +150,7 @@ const Knob: React.FC<KnobProps> = ({
   return (
     <div>
       <div className="absolute w-24 h-24 flex items-center justify-center pointer-events-none">
-        <label className="absolute text-secondary font-mono z-[1]">
+        <label className="absolute text-white/80 font-mono z-[1]">
           {mapValueToPercentage(value)}
         </label>
       </div>
@@ -124,12 +158,12 @@ const Knob: React.FC<KnobProps> = ({
       <div
         ref={knobRef}
         onMouseDown={handleMouseDown}
-        className="w-24 h-24 rounded-full bg-white/80 cursor-pointer"
+        className="w-24 h-24 rounded-full bg-secondary transparent cursor-pointer border-[16px] border-white/80"
         style={{
           transform: `rotate(${getRotation()}deg)`,
         }}
       >
-        <div className="w-1 h-1/6 rounded-full bg-secondary mx-auto" />
+        <div className="w-1 h-[20px] bg-secondary mx-auto -my-[18px]" />
       </div>
     </div>
   );
