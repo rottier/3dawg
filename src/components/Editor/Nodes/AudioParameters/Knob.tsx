@@ -12,6 +12,7 @@ interface AudioRangeProps<T extends AudioGraphNode> {
   logarithmic?: boolean;
   angleMin?: number;
   angleMax?: number;
+  modifyValue?: (value: number) => number;
 }
 
 export const AudioKnob = <T extends AudioGraphNode>({
@@ -23,6 +24,7 @@ export const AudioKnob = <T extends AudioGraphNode>({
   logarithmic = false,
   angleMin = 0,
   angleMax = 359,
+  modifyValue
 }: AudioRangeProps<T>): React.ReactElement => {
   const [value, setValue] = useAudioParameter<T>(audioNode, parameterName);
 
@@ -38,7 +40,12 @@ export const AudioKnob = <T extends AudioGraphNode>({
         valueMax={valueMax}
         valueStep={valueStep}
         value={value}
-        onValueChange={(value) => setValue(value)}
+        onValueChange={(value) => {
+          if (modifyValue)
+            value = modifyValue(value);
+
+          setValue(value)
+        }}
         logarithmic={logarithmic}
       />
     </div>
