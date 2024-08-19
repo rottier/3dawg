@@ -89,8 +89,10 @@ export class AudioGraphNode<
               setValueAtTime(Number(value), this.context.currentTime);
             }
           } else {
-            if (this.graph.playing)
+            if (this.graph.playing) {
+              this.graph.stop();
               this.graph.play();
+            }
           }
         } 
       }
@@ -166,8 +168,6 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
       periodicWave: undefined,
       type: "sawtooth",
     };
-    this.node?.frequency.setValueAtTime(0, 0);
-
     this.reconstruct();
   }
 }

@@ -27,20 +27,24 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children })
             setActiveId(null);
             if (event.over?.id === 'graph') {
                 setDragSuccess(true);
-                // graph.addAudioNode(event.active.id as AudioGraphNodes);
             }
         }
     });
 
     useEffect(() => {
         if (activeId && Object.keys(NodeTypes).includes(activeId)) {
-            // Type assertion to ensure correct key type
             const component = NodeTypes[activeId as keyof typeof NodeTypes];
             setOverlayComponent(React.createElement(component));
         } else {
             setOverlayComponent(null);
         }
     }, [activeId]);
+
+    useEffect(() => {
+        return () => {
+            graph.stop();
+        }
+    }, [])
 
     return (
         <>

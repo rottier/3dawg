@@ -26,6 +26,7 @@ const Knob: React.FC<KnobProps> = ({
   const [startRotation, setStartRotation] = useState<number>(0);
   const [cumulativeRotation, setCumulativeRotation] = useState<number>(0);
   const [startValue, setStartValue] = useState<number>(0);
+  const [percentage, setPercentage] = useState<number>(0);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -40,7 +41,6 @@ const Knob: React.FC<KnobProps> = ({
         const currentRotation = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
         let deltaRotation = currentRotation - startRotation;
 
-        // Normalize deltaRotation to be within [-180, 180] degrees
         if (deltaRotation > 180) {
           deltaRotation -= 360;
         } else if (deltaRotation < -180) {
@@ -49,7 +49,7 @@ const Knob: React.FC<KnobProps> = ({
 
         const newCumulativeRotation = cumulativeRotation + deltaRotation;
         setCumulativeRotation(newCumulativeRotation);
-        setStartRotation(currentRotation); // Update the startRotation for the next move event
+        setStartRotation(currentRotation);
 
         const angleRange = angleMax - angleMin;
         let newValue: number;
@@ -94,7 +94,6 @@ const Knob: React.FC<KnobProps> = ({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-    
   }, [
     isDragging,
     startRotation,
@@ -141,29 +140,50 @@ const Knob: React.FC<KnobProps> = ({
     return angleMin + normalizedValue * angleRange;
   };
 
-  const mapValueToPercentage = (value: number): string => {
+  useEffect(() => {
     const range = valueMax - valueMin;
     const percentage = Math.round(((value - valueMin) / range) * 100);
-    return `${percentage || 0}%`;
-  };
+    setPercentage(percentage || 0);
+  }, [valueMax, valueMin, value]);
 
   return (
     <div>
+      <div
+        className="absolute rounded-full w-24 h-24 pointer-events-none opacity-10"
+        style={{
+          background: `linear-gradient(to top, white 0%, white ${percentage}%, transparent ${percentage}%, transparent 100%)`,
+        }}
+      />
       <div className="absolute w-24 h-24 flex items-center justify-center pointer-events-none">
         <label className="absolute text-white/80 font-mono z-[1]">
-          {mapValueToPercentage(value)}
+          {`${percentage}%`}
         </label>
       </div>
-
+      <div
+        className="absolute w-24 h-24 pointer-events-none z-[2]"
+        style={{
+          transform: `rotate(${angleMin}deg)`,
+        }}
+      >
+        <div className="w-1 h-1 rounded-full bg-white/40 mx-auto -my-2" />
+      </div>
+      <div
+        className="absolute w-24 h-24 pointer-events-none z-[2]"
+        style={{
+          transform: `rotate(${angleMax}deg)`,
+        }}
+      >
+        <div className="w-1 h-1 rounded-full bg-white/40 mx-auto -my-2" />
+      </div>
       <div
         ref={knobRef}
         onMouseDown={handleMouseDown}
-        className="w-24 h-24 rounded-full bg-secondary transparent cursor-pointer border-[16px] border-white/80"
+        className="w-24 h-24 rounded-full transparent cursor-pointer border-4 border-white/80"
         style={{
           transform: `rotate(${getRotation()}deg)`,
         }}
       >
-        <div className="w-1 h-[20px] bg-secondary mx-auto -my-[18px]" />
+        <div className="w-2 h-2 rounded-full bg-white/80 mx-auto my-1" />
       </div>
     </div>
   );
