@@ -15,7 +15,7 @@ export function useAudioParameter<T extends AudioGraphNode>(
     }
   }, [audioNode, parameterName]);
 
-  const updateValue = (newValue: number) => {
+  const updateValue = (newValue: any) => {
     setValue(newValue);
     if (audioNode && 'parameters' in audioNode) {
       audioNode.parameters = {

@@ -9,7 +9,6 @@ export const Gain: FunctionComponent = ({
 }: AudioNodeProps<AudioGraphNodeGain>) => {
   return (
     <AudioNodeWrapper header="Gain" to={true} from={true}>
-      {" "}
       <AudioKnob<AudioGraphNodeGain>
           audioNode={data?.audioNode}
           parameterName="gain"

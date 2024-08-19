@@ -93,8 +93,16 @@ export class AudioGraphNode<
               setValueAtTime(Number(value), this.context.currentTime);
             }
           }
-        } else if (key in this.node!) {
-          (this.node as any)[key].value = value;
+        } else {
+          const wasPlaying = this.graph.playing;
+          this.graph.stop();
+          this.reconstruct();
+          this.linkedFrom().forEach((node) => node.reconstruct());
+          this.linkedTo().forEach((node) => node.reconstruct());
+
+    
+          if (wasPlaying)
+            this.graph.play();
         }
       }
     });

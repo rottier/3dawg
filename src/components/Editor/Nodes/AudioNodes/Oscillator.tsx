@@ -5,6 +5,7 @@ import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioRange } from "../AudioParameters/Range";
 import { AudioKnob } from "../AudioParameters/Knob";
 import { getNearestNoteFrequency } from "../../../../utils/Music";
+import { AudioSelect } from "../AudioParameters/Select";
 
 export const Oscillator: FunctionComponent = (
   props: AudioNodeProps<AudioGraphNodeOscillator>
@@ -23,11 +24,15 @@ export const Oscillator: FunctionComponent = (
           logarithmic={true}
           modifyValue={(value) => getNearestNoteFrequency(value).noteFrequency}
         />
-        <AudioRange<AudioGraphNodeOscillator>
+        <AudioSelect<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
-          parameterName="detune"
-          valueMin={-1200}
-          valueMax={1200}
+          parameterName="type"
+          options={{
+            sawtooth: "Sawtooth",
+            sine: "Sine",
+            square: "Square",
+            triangle: "Triangle",
+          }}
         />
       </div>
     </AudioNodeWrapper>
