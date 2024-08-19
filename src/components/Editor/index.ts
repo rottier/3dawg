@@ -1,5 +1,6 @@
 import { XYPosition } from "@xyflow/react";
-import { AudioGraphNode, AudioGraphNodes } from "../../core/AudioGraph";
+import { AudioGraphNodes } from "../../core/AudioGraph";
+import { AudioGraphNode } from "../../core/AudioGraph/AudioGraphNode";
 
 export type AudioGraphFlowNode = {
     id: string;

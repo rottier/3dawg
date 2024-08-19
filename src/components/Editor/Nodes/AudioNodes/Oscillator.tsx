@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
 import { AudioNodeProps } from "../.";
-import { AudioGraphNodeOscillator } from "../../../../core/AudioGraph";
+import { AudioGraphNodeOscillator } from "../../../../core/AudioGraph/Nodes";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioKnob } from "../AudioParameters/Knob";
 import { getNearestNoteFrequency } from "../../../../utils/Music";

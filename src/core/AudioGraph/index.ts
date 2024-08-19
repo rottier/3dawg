@@ -1,11 +1,12 @@
-import { AudioGraphNode } from "./AudioGraph";
+import { AudioGraphNode } from "./AudioGraphNode";
 export * from "./AudioGraph";
 
 export enum AudioGraphNodes {
     Invalid = "Invalid",
+    Output = "Output",
     Oscillator = "Oscillator",
     Gain = "Gain",
-    Output = "Output"
+    DynamicsCompressor = "DynamicsCompressor"
 }
 
 export type AudioGraphNodeType = keyof typeof AudioGraphNodes;

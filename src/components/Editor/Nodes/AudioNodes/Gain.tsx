@@ -1,14 +1,14 @@
 import { FunctionComponent } from "react";
-import { AudioGraphNodeGain } from "../../../../core/AudioGraph";
+import { AudioGraphNodeGain } from "../../../../core/AudioGraph/Nodes";
 import { AudioNodeProps } from "../.";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
-import { AudioRange } from "../AudioParameters/Range";
 import { AudioKnob } from "../AudioParameters/Knob";
 export const Gain: FunctionComponent = ({
   data,
 }: AudioNodeProps<AudioGraphNodeGain>) => {
   return (
     <AudioNodeWrapper header="Gain" to={true} from={true}>
+            <div className="w-72 h-fit flex flex-col gap-4">
       <AudioKnob<AudioGraphNodeGain>
           audioNode={data?.audioNode}
           parameterName="gain"
@@ -18,6 +18,7 @@ export const Gain: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
         />
+        </div>
     </AudioNodeWrapper>
   );
 };
