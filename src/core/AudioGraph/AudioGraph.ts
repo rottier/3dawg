@@ -18,11 +18,6 @@ let globalAudioContext: AudioContext;
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
-  // other properties...
-}
-
-function hassetValueAtTime(node: any): node is IAudioParamNode {
-  return node && typeof node.setValueAtTime === 'function';
 }
 
 export type AddAudioNode = (type: AudioGraphNodes) => string;
@@ -79,31 +74,25 @@ export class AudioGraphNode<
     Object.entries(parameters).forEach(([key, value]) => {
       if (key in this._parameters) {
         this._parameters[key as keyof Parameters] = value;
-        if (this.node && this.playing) {
+        if (this.node) {
           const nodeAsRecord = this.node as Record<string, any>;
 
-          if (
+          if (this.playing &&
             key in this.node &&
-            typeof nodeAsRecord[key]?.setValueAtTime === 'function' &&
+            typeof nodeAsRecord[key]?.setValueAtTime === "function" &&
             typeof value === "number"
-        ) {
-            const setValueAtTime = (this.node as any)[key].setValueAtTime as IAudioParamNode['setValueAtTime'];
+          ) {
+            const setValueAtTime = (this.node as any)[key]
+              .setValueAtTime as IAudioParamNode["setValueAtTime"];
 
             if (setValueAtTime) {
               setValueAtTime(Number(value), this.context.currentTime);
             }
+          } else {
+            if (this.graph.playing)
+              this.graph.play();
           }
-        } else {
-          const wasPlaying = this.graph.playing;
-          this.graph.stop();
-          this.reconstruct();
-          this.linkedFrom().forEach((node) => node.reconstruct());
-          this.linkedTo().forEach((node) => node.reconstruct());
-
-    
-          if (wasPlaying)
-            this.graph.play();
-        }
+        } 
       }
     });
   }
@@ -169,7 +158,6 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
   onStart = () => this.node?.start();
   onStop = () => this.node?.stop();
 
-
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
     this._parameters = {
@@ -178,7 +166,7 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
       periodicWave: undefined,
       type: "sawtooth",
     };
-  this.node?.frequency.setValueAtTime(0,0)
+    this.node?.frequency.setValueAtTime(0, 0);
 
     this.reconstruct();
   }
@@ -248,8 +236,7 @@ export class AudioGraph {
         throw `Could not add audio graph node, type unknown: ${type}`;
     }
 
-    if (this.playing)
-      newNode.start();
+    if (this.playing) newNode.start();
 
     this.nodes.push(newNode);
     return newNode.id;
@@ -264,8 +251,7 @@ export class AudioGraph {
     if (i !== -1) {
       const foundNode = this.nodes.splice(i, 1)[0];
 
-      if (this.playing)
-        foundNode.stop();
+      if (this.playing) foundNode.stop();
 
       // Also remove links when removing a node
       for (let j = this.links.length - 1; j > -1; j--) {

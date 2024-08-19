@@ -144,7 +144,7 @@ const Knob: React.FC<KnobProps> = ({
   const mapValueToPercentage = (value: number): string => {
     const range = valueMax - valueMin;
     const percentage = Math.round(((value - valueMin) / range) * 100);
-    return `${percentage}%`;
+    return `${percentage || 0}%`;
   };
 
   return (

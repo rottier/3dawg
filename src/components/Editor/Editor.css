@@ -1,6 +1,7 @@
 .react-flow__controls-button {
     background-color: #39C7B7;
     border: 0;
+    margin: 1px !important;
 }
 
 .react-flow__handle {

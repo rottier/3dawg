@@ -20,7 +20,7 @@ export const AudioRange = <T extends AudioGraphNode>({
   const [value, setValue] = useAudioParameter<T>(audioNode, parameterName);
 
   return (
-    <div className="flex flex-row gap-2 ">
+    <div className="flex flex-row gap-2 items-center">
         <label className="text-white capitalize w-32 text-ellipsis overflow-hidden font-mono">{String(parameterName)}</label>
     <input
       type="range"
