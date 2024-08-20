@@ -1,6 +1,16 @@
 /** @type {import('tailwindcss').Config} */
+
+const colors = {
+  primary: '#E6234E',
+  secondary: '#0D375D',
+  accent: '#39C7B7',
+  neutral: '#3D4451',
+  "base-100": "#0D375D"
+}
+
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "./node_modules/tw-elements/js/**/*.js"],
+  plugins: [require('daisyui')],
   theme: {
     extend: {
       keyframes: {
@@ -12,7 +22,14 @@ export default {
       animation: {
         'mirror-h-instant': 'mirrorHorizontalInstant 2s steps(1) infinite',
       },
+      colors: colors,
     },
   },
-  plugins: [],
+  daisyui: {
+    themes: [
+      {
+        threedawg: colors
+      },
+    ],
+  },
 };
