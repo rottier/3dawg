@@ -183,6 +183,11 @@ export class AudioGraph {
       linkIndex = this.findLinkIndex(fromId, toId, fromParameter, toParameter);
     }
 
+    if (this.playing) {
+      this.stop();
+      this.play();
+    }
+
     if (success)
       this.onLinks.notify();
 

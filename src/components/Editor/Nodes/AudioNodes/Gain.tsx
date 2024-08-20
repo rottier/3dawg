@@ -12,11 +12,12 @@ export const Gain: FunctionComponent = ({
           audioNode={data?.audioNode}
           parameterName="gain"
           valueStep={0.01}
-          valueMin={0}
+          valueMin={0.001}
           valueMax={10000}
           angleMin={-135}
           angleMax={135}
           linkable={true}
+          logarithmic={true}
         />
     </AudioNodeWrapper>
   );
