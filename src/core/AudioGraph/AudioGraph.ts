@@ -163,7 +163,7 @@ export class AudioGraph {
             found = link.toParameter === toParameter;
           }
         }
-
+        
         return found
       }
     );
@@ -180,7 +180,7 @@ export class AudioGraph {
       this.links.splice(linkIndex, 1);
       success = true;
       this.onLinks.notify();
-      linkIndex = this.findLinkIndex(fromId, toId);
+      linkIndex = this.findLinkIndex(fromId, toId, fromParameter, toParameter);
     }
 
     if (success)

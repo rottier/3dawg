@@ -88,15 +88,13 @@ const useComposer = (): ComposerConsumerType => {
     }
 
     useEffect(() => {
-        const cb = (links: AudioGraphLink[]) => {
-            setLinks(links);
-        };
+        const cb = (links: AudioGraphLink[]) => setLinks([...links]);
         context.onLinks.subscribe(cb);
         return () => context.onLinks.unsubscribe(cb);
     }, [context.onLinks]);
 
     useEffect(() => {
-        const cb = setNodes;
+        const cb = (nodes: AudioGraphNode[]) => setNodes([...nodes]);
         context.onNodes.subscribe(cb);
         return () => context.onNodes.unsubscribe(cb);
     }, [context.onNodes]);

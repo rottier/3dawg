@@ -17,7 +17,6 @@ export const Gain: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
-          logarithmic={true}
         />
     </AudioNodeWrapper>
   );
