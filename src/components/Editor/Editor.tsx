@@ -20,14 +20,14 @@ import { NodeTypes } from "./Nodes";
 const proOptions = { hideAttribution: true };
 
 export function Editor() {
-  const composer = useComposer();
+  const {graph, links, playing} = useComposer();
   const reactFlow = useReactFlow();
   useDndMonitor({
     onDragEnd(event) {
       if (event.over?.id === "graph") {
         const nodeType = event.active.id as AudioGraphNodes;
-        const nodeId = composer.graph.addAudioNode(nodeType);
-        const node = composer.graph.getAudioNode(nodeId);
+        const nodeId = graph.addAudioNode(nodeType);
+        const node = graph.getAudioNode(nodeId);
 
         if (node) {
           const newNodes = [
@@ -57,35 +57,27 @@ export function Editor() {
     id: string;
     source: string;
     target: string;
+    sourceHandle?: string;
+    targetHandle?: string;
   }>([]);
   const { setNodeRef } = useDroppable({
     id: "graph",
   });
 
-  useEffect(() => {
-    return () => {
-      composer.graph.stop();
-    };
-  }, []);
-
   const onConnect = useCallback<OnConnect>(
     (params) => {
-      composer.graph.linkNodes(params.source, params.target);
+      graph.linkNodes(params.source, params.target, params.sourceHandle || undefined, params.targetHandle || undefined);
     },
-    [composer.graph]
+    [graph]
   );
 
   useEffect(() => {
-    composer.graph.onLinksChanged = onLinksChanged;
-  }, [composer.graph]);
-
-  const onLinksChanged = useCallback(() => {
     let newEdges: typeof edges = [];
-    composer.graph.links.forEach((link) =>
-      newEdges.push({ id: link.id, source: link.from.id, target: link.to.id })
+    links.forEach((link) =>
+      newEdges.push({ id: link.id, source: link.from.id, target: link.to.id, sourceHandle: link.fromParameter, targetHandle: link.toParameter })
     );
     setEdges(newEdges);
-  }, [composer.graph, setEdges]);
+  }, [links]);
 
   return (
     <div className={"w-full h-full flex flex-col"}>
@@ -100,6 +92,8 @@ export function Editor() {
           onConnect={onConnect}
           proOptions={proOptions}
           colorMode="light"
+          minZoom={0.1}
+          onEdgeClick={(_, edge) => graph.unlinkNodes(edge.source, edge.target, edge.sourceHandle || undefined, edge.targetHandle || undefined)}
         >
           <Controls />
         </ReactFlow>
@@ -108,13 +102,13 @@ export function Editor() {
         <button
           className="btn btn-wide btn-accent"
           onClick={() => {
-            composer.graph.playing
-              ? composer.graph.stop()
-              : composer.graph.play();
+            playing
+              ? graph.stop()
+              : graph.play();
             setRerender(!rerender);
           }}
         >
-          {composer.graph.playing ? "Stop" : "Play"}
+          {playing ? "Stop" : "Play"}
         </button>
       </div>
     </div>

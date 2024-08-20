@@ -1,25 +1,25 @@
 import React from "react";
-import { AudioGraphNode } from "../../../../core/AudioGraph";
+import { AudioGraphNode } from "../../../../core/AudioGraph/AudioGraphNode";
 import { useAudioParameter } from "../../../../hooks/useAudioParameter";
+import { AudioParameterWrapper } from "../AudioParameterWrapper";
 
 interface AudioRangeProps<T extends AudioGraphNode> {
   audioNode: T | undefined;
   parameterName: keyof T["parameters"];
   options: Record<string, string>;
+  linkable?: boolean;
 }
 
 export const AudioSelect = <T extends AudioGraphNode>({
   audioNode,
   parameterName,
   options,
+  linkable = false,
 }: AudioRangeProps<T>): React.ReactElement => {
   const [value, setValue] = useAudioParameter<T>(audioNode, parameterName);
 
   return (
-    <div className="flex flex-row gap-2 items-center">
-      <label className="text-white capitalize w-32 text-ellipsis overflow-hidden font-mono">
-        {String(parameterName)}
-      </label>
+    <AudioParameterWrapper parameterId={String(parameterName)} linkable={linkable} node={audioNode}>
       <select
         value={value ?? 0}
         onChange={(e) => setValue(e.target.value)}
@@ -31,6 +31,6 @@ export const AudioSelect = <T extends AudioGraphNode>({
           </option>
         ))}
       </select>
-    </div>
+    </AudioParameterWrapper>
   );
 };

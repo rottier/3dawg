@@ -8,17 +8,17 @@ export const Gain: FunctionComponent = ({
 }: AudioNodeProps<AudioGraphNodeGain>) => {
   return (
     <AudioNodeWrapper header="Gain" to={true} from={true}>
-            <div className="w-72 h-fit flex flex-col gap-4">
       <AudioKnob<AudioGraphNodeGain>
           audioNode={data?.audioNode}
           parameterName="gain"
           valueStep={0.01}
           valueMin={0}
-          valueMax={1}
+          valueMax={10000}
           angleMin={-135}
           angleMax={135}
+          linkable={true}
+          logarithmic={true}
         />
-        </div>
     </AudioNodeWrapper>
   );
 };

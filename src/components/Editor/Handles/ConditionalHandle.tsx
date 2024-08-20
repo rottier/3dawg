@@ -1,18 +1,24 @@
 import { Handle, HandleProps, useUpdateNodeInternals } from '@xyflow/react';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useEffect } from 'react';
 
+type ConditionalHandleProps = HandleProps & {
+    updateInternals?: () => void;
+}
 
-const ConditionalHandle: FunctionComponent<HandleProps> = ({ ...restProps }) => {
-    let handle: JSX.Element;
+const ConditionalHandle: FunctionComponent<ConditionalHandleProps> = ({updateInternals, ...restProps }) => {
     try {
-        handle = <Handle {...restProps} />;
+        const handle = <Handle {...restProps} />;
         const updateNodeInternals = useUpdateNodeInternals();
-        updateNodeInternals(restProps.id!)
-    } catch (error) {
-        handle = <></>;
-    }
 
-    return handle;
+        useEffect(() => {
+            if (restProps.id)
+                updateNodeInternals(restProps.id);
+        }, [])
+
+        return handle
+    } catch (error) {
+        return null
+    }
 };
 
 export default ConditionalHandle;

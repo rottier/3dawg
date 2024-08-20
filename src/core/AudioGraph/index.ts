@@ -15,7 +15,8 @@ export interface AudioGraphLink {
     id: string;
     from: AudioGraphNode;
     to: AudioGraphNode;
-    muted: boolean;
+    fromParameter?: string;
+    toParameter?: string;
 };
 
 export interface Keyframe {

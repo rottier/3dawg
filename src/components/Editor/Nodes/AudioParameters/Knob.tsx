@@ -1,7 +1,8 @@
 import React from "react";
-import { AudioGraphNode } from "../../../../core/AudioGraph";
+import { AudioGraphNode } from "../../../../core/AudioGraph/AudioGraphNode";
 import { useAudioParameter } from "../../../../hooks/useAudioParameter";
 import Knob from "../../../Controls/Knob";
+import { AudioParameterWrapper } from "../AudioParameterWrapper";
 
 interface AudioRangeProps<T extends AudioGraphNode> {
   audioNode: T | undefined;
@@ -13,6 +14,7 @@ interface AudioRangeProps<T extends AudioGraphNode> {
   angleMin?: number;
   angleMax?: number;
   modifyValue?: (value: number) => number;
+  linkable?: boolean;
 }
 
 export const AudioKnob = <T extends AudioGraphNode>({
@@ -24,30 +26,28 @@ export const AudioKnob = <T extends AudioGraphNode>({
   logarithmic = false,
   angleMin = 0,
   angleMax = 359,
-  modifyValue
+  modifyValue,
+  linkable = false,
 }: AudioRangeProps<T>): React.ReactElement => {
   const [value, setValue] = useAudioParameter<T>(audioNode, parameterName);
 
   return (
-    <div className="flex flex-row gap-2 items-center">
-      <label className="text-white capitalize w-32 text-ellipsis overflow-hidden font-mono">
-        {String(parameterName)}
-      </label>
-      <Knob
-        angleMin={angleMin}
-        angleMax={angleMax}
-        valueMin={valueMin}
-        valueMax={valueMax}
-        valueStep={valueStep}
-        value={value}
-        onValueChange={(value) => {
-          if (modifyValue)
-            value = modifyValue(value);
+    <AudioParameterWrapper parameterId={String(parameterName)} linkable={linkable} node={audioNode}>
+        <Knob
+          angleMin={angleMin}
+          angleMax={angleMax}
+          valueMin={valueMin}
+          valueMax={valueMax}
+          valueStep={valueStep}
+          value={value}
+          onValueChange={(value) => {
+            if (modifyValue)
+              value = modifyValue(value);
 
-          setValue(value)
-        }}
-        logarithmic={logarithmic}
-      />
-    </div>
+            setValue(value)
+          }}
+          logarithmic={logarithmic}
+        />
+    </AudioParameterWrapper>
   );
 };

@@ -8,14 +8,15 @@ import {
   AudioGraphNodeOutput,
 } from "./Nodes";
 import { AudioGraphNode } from "./AudioGraphNode";
+import { Subscribable } from "../../utils/Subscribable";
 
 let globalAudioContext: AudioContext;
 
 export type AddAudioNode = (type: AudioGraphNodes) => string;
 export type RemoveAudioNode = (id: string) => boolean;
-export type LinkNodes = (fromId: string, toId: string) => boolean;
-export type UnlinkNodes = (fromId: string, toId: string) => boolean;
-export type FindLink = (fromId: string, toId: string) => number;
+export type LinkNodes = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => boolean;
+export type UnlinkNodes = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => boolean;
+export type FindLink = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => number;
 
 export class AudioGraph {
   playing = false;
@@ -26,6 +27,8 @@ export class AudioGraph {
     this.nodes.forEach((node) => node.start());
 
     this.playing = true;
+
+    this.onPlayback.notify();
   }
   stop() {
     if (this.audioContext.state === "running" && this.playing) {
@@ -34,8 +37,13 @@ export class AudioGraph {
     this.nodes.forEach((node) => node.stop());
 
     this.playing = false;
+
+    this.onPlayback.notify();
   }
   public audioContext: AudioContext;
+  public readonly onPlayback = new Subscribable<boolean>(() => this.playing);
+  public readonly onNodes = new Subscribable<AudioGraphNode[]>(() => this.nodes);
+  public readonly onLinks = new Subscribable<AudioGraphLink[]>(() => this.links);
   public readonly nodes: AudioGraphNode[];
   public readonly links: AudioGraphLink[];
   addAudioNode: AddAudioNode = (type) => {
@@ -61,6 +69,7 @@ export class AudioGraph {
     if (this.playing) newNode.start();
 
     this.nodes.push(newNode);
+    this.onNodes.notify();
     return newNode.id;
   };
 
@@ -75,46 +84,64 @@ export class AudioGraph {
 
       if (this.playing) foundNode.stop();
 
+      let linksRemoved = false;
+
       // Also remove links when removing a node
       for (let j = this.links.length - 1; j > -1; j--) {
         const link = this.links[j];
         if (id === link.from.id || id === link.to.id) {
+          linksRemoved = true;
           this.links.splice(j, 1);
         }
       }
+      if (linksRemoved)
+        this.onLinks.notify();
 
+      this.onNodes.notify();
       return true;
     }
 
     return false;
   };
 
-  linkNodes: LinkNodes = (fromId, toId) => {
+  linkNodes: LinkNodes = (fromId, toId, fromParameter, toParameter) => {
     let fromNode = null;
     let toNode = null;
 
-    if (this.findLinkIndex(fromId, toId) > -1) return true;
+    if (this.findLinkIndex(fromId, toId, fromParameter, toParameter) > -1) return true;
 
     for (const node of this.nodes) {
       if (node.id === fromId) {
         fromNode = node;
+
+        if (fromParameter)
+          fromNode = fromNode?.parameters && fromParameter in fromNode.parameters ? fromNode : undefined;
       }
       if (node.id === toId) {
         toNode = node;
+
+        if (toParameter)
+          toNode = toNode?.parameters && toParameter in toNode.parameters ? toNode : undefined;
       }
+
       if (fromNode && toNode) {
-        this.links.push({
+        const newLink: AudioGraphLink = {
           id: uniqueId(),
           from: fromNode,
           to: toNode,
-          muted: false,
-        });
+        }
+
+        if (fromParameter) newLink.fromParameter = fromParameter;
+        if (toParameter) newLink.toParameter = toParameter;
+
+        this.links.push(newLink);
+
         if (this.playing) {
           this.stop();
           this.play();
         }
 
-        this.onLinksChanged(this.links);
+        this.onLinks.notify();
         return true;
       }
     }
@@ -122,23 +149,42 @@ export class AudioGraph {
     return false;
   };
 
-  public onLinksChanged: (links: AudioGraphLink[]) => void = () => {};
+  findLinkIndex: FindLink = (fromId, toId, fromParameter, toParameter) => {
+    const index = this.links.findIndex(
+      (link) => {
+        let found = link.from.id === fromId && link.to.id === toId;
 
-  findLinkIndex: FindLink = (fromId, toId) =>
-    this.links.findIndex(
-      (link) => link.from.id === fromId && link.to.id === toId
+        if (found) {
+          if (fromParameter && toParameter) {
+            found = link.fromParameter === fromParameter && link.toParameter === toParameter;
+          } else if (fromParameter) {
+            found = link.fromParameter === fromParameter;
+          } else if (toParameter) {
+            found = link.toParameter === toParameter;
+          }
+        }
+
+        return found
+      }
     );
 
-  unlinkNodes: UnlinkNodes = (fromId, toId) => {
-    let linkIndex = this.findLinkIndex(fromId, toId);
+    return index;
+  }
+
+
+  unlinkNodes: UnlinkNodes = (fromId, toId, fromParameter, toParameter) => {
+    let linkIndex = this.findLinkIndex(fromId, toId, fromParameter, toParameter);
     let success = false;
 
     while (linkIndex > -1) {
       this.links.splice(linkIndex, 1);
       success = true;
-      this.onLinksChanged(this.links);
+      this.onLinks.notify();
       linkIndex = this.findLinkIndex(fromId, toId);
     }
+
+    if (success)
+      this.onLinks.notify();
 
     return success;
   };

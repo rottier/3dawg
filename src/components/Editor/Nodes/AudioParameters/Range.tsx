@@ -1,6 +1,7 @@
 import React from "react";
-import { AudioGraphNode } from "../../../../core/AudioGraph";
+import { AudioGraphNode } from "../../../../core/AudioGraph/AudioGraphNode";
 import { useAudioParameter } from "../../../../hooks/useAudioParameter";
+import { AudioParameterWrapper } from "../AudioParameterWrapper";
 
 interface AudioRangeProps<T extends AudioGraphNode> {
   audioNode: T | undefined;
@@ -8,6 +9,7 @@ interface AudioRangeProps<T extends AudioGraphNode> {
   valueMin: number;
   valueMax: number;
   valueStep?: number;
+  linkable?: boolean;
 }
 
 export const AudioRange = <T extends AudioGraphNode>({
@@ -16,20 +18,21 @@ export const AudioRange = <T extends AudioGraphNode>({
   valueMin,
   valueMax,
   valueStep = 1,
+  linkable = false,
 }: AudioRangeProps<T>): React.ReactElement => {
   const [value, setValue] = useAudioParameter<T>(audioNode, parameterName);
 
   return (
-    <div className="flex flex-row gap-2 items-center">
-        <label className="text-white capitalize w-32 text-ellipsis overflow-hidden font-mono">{String(parameterName)}</label>
-    <input
-      type="range"
-      min={valueMin}
-      max={valueMax}
-      step={valueStep}
-      value={value ?? 0}
-      onChange={(e) => setValue(e.target.valueAsNumber)}
-      className="range"
-    /></div>
+    <AudioParameterWrapper parameterId={String(parameterName)} linkable={linkable} node={audioNode}>
+        <input
+          type="range"
+          min={valueMin}
+          max={valueMax}
+          step={valueStep}
+          value={value ?? 0}
+          onChange={(e) => setValue(e.target.valueAsNumber)}
+          className="range"
+        />
+    </AudioParameterWrapper>
   );
 };

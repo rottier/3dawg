@@ -11,17 +11,27 @@ export const Oscillator: FunctionComponent = (
 ) => {
   return (
     <AudioNodeWrapper header="Oscillator" to={true}>
-      <div className="w-72 h-fit flex flex-col gap-4">
         <AudioKnob<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
           parameterName="frequency"
           valueStep={0.1}
-          valueMin={20}
+          valueMin={1}
           valueMax={15000}
           angleMin={-135 - 360}
           angleMax={135 + 360}
           logarithmic={true}
           modifyValue={(value) => getNearestNoteFrequency(value).noteFrequency}
+          linkable={true}
+        />
+        <AudioKnob<AudioGraphNodeOscillator>
+          audioNode={props.data?.audioNode}
+          parameterName="detune"
+          valueStep={1}
+          valueMin={-1200}
+          valueMax={1200}
+          angleMin={-135 - 360}
+          angleMax={135 + 360}
+          linkable={true}
         />
         <AudioSelect<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
@@ -33,7 +43,6 @@ export const Oscillator: FunctionComponent = (
             triangle: "Triangle",
           }}
         />
-      </div>
     </AudioNodeWrapper>
   );
 };

@@ -6,9 +6,10 @@ vi.mock('standardized-audio-context', () => ({
   }));
 
 import { AudioGraphNodes } from ".";
-import { AudioGraph, AudioGraphNode } from "./AudioGraph";
+import { AudioGraph } from "./AudioGraph";
+import { AudioGraphNode } from "./AudioGraphNode";
 import { assert, beforeEach, describe, test, vi } from 'vitest';
-import { AudioGraphNodeOscillator } from "./Nodes";
+import { AudioGraphNodeGain, AudioGraphNodeOscillator } from "./Nodes";
 
 describe("AudioGraph", () => {
     let graph: AudioGraph;
@@ -55,7 +56,7 @@ describe("AudioGraph", () => {
 
 describe("AudioGraphNode", () => {
     const graph = new AudioGraph();
-    const graphNode = new AudioGraphNode(graph.audioContext, graph);
+    const graphNode = new AudioGraphNodeOscillator(graph.audioContext, graph);
 
     test("start should start the node", () => {
         graphNode.start();

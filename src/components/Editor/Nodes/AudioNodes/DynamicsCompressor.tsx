@@ -17,6 +17,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           valueMax={0}
           angleMin={-135}
           angleMax={135}
+          linkable={true}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -26,6 +27,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           valueMax={40}
           angleMin={-135}
           angleMax={135}
+          linkable={true}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -35,6 +37,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           valueMax={20}
           angleMin={-135}
           angleMax={135}
+          linkable={true}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -44,6 +47,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           valueMax={1}
           angleMin={-135}
           angleMax={135}
+          linkable={true}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -53,6 +57,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           valueMax={1}
           angleMin={-135}
           angleMax={135}
+          linkable={true}
         />
       </div>
     </AudioNodeWrapper>

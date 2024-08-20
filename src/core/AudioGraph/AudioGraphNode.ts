@@ -1,11 +1,11 @@
 import { uniqueId } from "lodash";
-import { IAudioNode, TContext, isAnyAudioNode, AudioContext } from "standardized-audio-context";
-import { AudioGraphNodes } from ".";
+import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from "standardized-audio-context";
+import { AudioGraphLink, AudioGraphNodes } from ".";
 import { AudioGraph } from "./AudioGraph";
 
 interface IAudioParamNode {
-    setValueAtTime: (value: number, endTime: number) => void;
-  }
+  setValueAtTime: (value: number, endTime: number) => void;
+}
 
 /**
  * Represents a node in an audio graph.
@@ -31,22 +31,20 @@ export abstract class AudioGraphNode<
   private _node: Node | undefined;
   public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
   /**
-   * Retrieves an array of AudioGraphNode objects that are linked to this AudioGraphNode.
-   * @returns {AudioGraphNode[]} The array of linked AudioGraphNode objects.
+   * Retrieves an array of AudioGraphLink objects that are linked to this AudioGraphNode.
+   * @returns {AudioGraphLink[]} The array of relevant links.
    */
-  public readonly linkedFrom: () => AudioGraphNode[] = () =>
+  public readonly linksFrom: () => AudioGraphLink[] = () =>
     this.graph.links
       .filter((link) => link.to.id === this.id)
-      .map((link) => link.from);
   /**
-   * Returns an array of AudioGraphNode objects that are linked to this AudioGraphNode.
+   * Returns an array of AudioGraphLink objects that are linked to this AudioGraphNode.
    *
-   * @returns {AudioGraphNode[]} The array of linked AudioGraphNode objects.
+   * @returns {AudioGraphLink[]} The array of relevant links.
    */
-  public readonly linkedTo: () => AudioGraphNode[] = () =>
+  public readonly linksTo: () => AudioGraphLink[] = () =>
     this.graph.links
       .filter((link) => link.from.id === this.id)
-      .map((link) => link.to);
   protected _parameters: Partial<Parameters>;
   public get parameters() {
     return this._parameters;
@@ -75,7 +73,7 @@ export abstract class AudioGraphNode<
               this.graph.play();
             }
           }
-        } 
+        }
       }
     });
   }
@@ -92,14 +90,19 @@ export abstract class AudioGraphNode<
       this.reconstruct();
     }
 
-    const linkedTo = this.linkedTo();
+    const linkedTo = this.linksTo();
 
     for (let i = 0; i < linkedTo.length; i++) {
-      const to = linkedTo[i];
+      const link = linkedTo[i];
 
-      if (isAnyAudioNode(to.node) && isAnyAudioNode(this.node)) {
+      if (isAnyAudioNode(link.to.node) && isAnyAudioNode(this.node) && (link.toParameter ? link.toParameter in link.to.node : true)) {
         try {
-          this.node.connect(to.node);
+          if (link.toParameter) {
+            const nodeAsRecord = link.to.node as Record<string, any>;
+            this.node.connect(nodeAsRecord[link.toParameter] as IAudioParam);
+          }
+          else
+            this.node.connect(link.to.node);
         } catch (error) {
           console.error(error);
         }
@@ -118,9 +121,9 @@ export abstract class AudioGraphNode<
     this.onStop();
     this.reconstruct();
   };
-  reconstruct = () => {};
-  onStart = () => {};
-  onStop = () => {};
+  reconstruct = () => { };
+  onStart = () => { };
+  onStop = () => { };
 
   constructor(context: AudioContext, graph: AudioGraph) {
     this.graph = graph;
