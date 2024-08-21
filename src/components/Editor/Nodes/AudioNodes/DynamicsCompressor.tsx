@@ -18,6 +18,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
+          formatLabel={(value) => `${Math.round(value)} dB`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -28,6 +29,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
+          formatLabel={(value) => `${Math.round(value)} dB`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -38,6 +40,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
+          formatLabel={(value) => `${Math.round(value)} dB`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -48,16 +51,18 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
+          formatLabel={(value) => `${Math.round(value * 1000)} ms`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
           parameterName="release"
-          valueStep={0.01}
+          valueStep={0.001}
           valueMin={0}
           valueMax={1}
           angleMin={-135}
           angleMax={135}
           linkable={true}
+          formatLabel={(value) => `${Math.round(value * 1000)} ms`}
         />
       </div>
     </AudioNodeWrapper>

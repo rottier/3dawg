@@ -9,6 +9,7 @@ interface KnobProps {
   onValueChange: (newValue: number) => void;
   logarithmic: boolean;
   valueStep: number;
+  formatLabel?: (value: number, percentage: number) => string;
 }
 
 const Knob: React.FC<KnobProps> = ({
@@ -16,10 +17,11 @@ const Knob: React.FC<KnobProps> = ({
   valueMax,
   angleMin,
   angleMax,
-  value,
+  value = 0,
   onValueChange,
   logarithmic,
   valueStep,
+  formatLabel = (_, percentage) => `${percentage}%`,
 }) => {
   const knobRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -27,6 +29,11 @@ const Knob: React.FC<KnobProps> = ({
   const [cumulativeRotation, setCumulativeRotation] = useState<number>(0);
   const [startValue, setStartValue] = useState<number>(0);
   const [percentage, setPercentage] = useState<number>(0);
+  const [label, setLabel] = useState<string>(formatLabel(value, percentage));
+
+  useEffect(() => {
+    setLabel(formatLabel(value, percentage));
+  }, [value, formatLabel]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -67,7 +74,7 @@ const Knob: React.FC<KnobProps> = ({
           // Apply step size in logarithmic space
           newValue = Math.exp(
             Math.round(Math.log(newValue) / Math.log(1 + valueStep / 100)) *
-              Math.log(1 + valueStep / 100)
+            Math.log(1 + valueStep / 100)
           );
         } else {
           newValue = startValue + (newCumulativeRotation / angleRange) * range;
@@ -154,9 +161,9 @@ const Knob: React.FC<KnobProps> = ({
           background: `linear-gradient(to top, white 0%, white ${percentage}%, transparent ${percentage}%, transparent 100%)`,
         }}
       />
-      <div className="absolute w-24 h-24 flex items-center justify-center pointer-events-none">
+      <div className="absolute w-24 h-24 flex items-center justify-center pointer-events-none overflow-hidden">
         <label className="absolute text-white/80 font-mono z-[1]">
-          {`${percentage}%`}
+          {label}
         </label>
       </div>
       <div

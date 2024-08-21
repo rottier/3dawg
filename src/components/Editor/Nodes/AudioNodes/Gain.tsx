@@ -18,6 +18,7 @@ export const Gain: FunctionComponent = ({
           angleMax={135}
           linkable={true}
           logarithmic={true}
+          formatLabel={(value) => `${value.toFixed(3)}`}
         />
     </AudioNodeWrapper>
   );

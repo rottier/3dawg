@@ -22,6 +22,7 @@ export const Oscillator: FunctionComponent = (
           logarithmic={true}
           modifyValue={(value) => getNearestNoteFrequency(value).noteFrequency}
           linkable={true}
+          formatLabel={(value) => value > 999 ? `${Math.round(value / 1000)} kHz` : `${Math.round(value)} Hz`}
         />
         <AudioKnob<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
@@ -32,6 +33,7 @@ export const Oscillator: FunctionComponent = (
           angleMin={-135 - 360}
           angleMax={135 + 360}
           linkable={true}
+          formatLabel={(value) => `${Math.round(value)} ¢`}
         />
         <AudioSelect<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
