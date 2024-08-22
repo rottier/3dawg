@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AudioGraphNode } from '../core/AudioGraph';
+import { AudioGraphNode } from '../core/AudioGraph/AudioGraphNode';
 
 export function useAudioParameter<T extends AudioGraphNode>(
   audioNode: T | undefined,

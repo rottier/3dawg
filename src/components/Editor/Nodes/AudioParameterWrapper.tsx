@@ -1,9 +1,8 @@
-import { FunctionComponent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { FunctionComponent, ReactNode, useEffect, useState } from "react";
 import ConditionalHandle from "../Handles/ConditionalHandle";
 import { Position } from "@xyflow/react";
 import { AudioGraphNode } from "../../../core/AudioGraph/AudioGraphNode";
 import { useComposer } from "../../Composer";
-import { AudioGraphLink } from "../../../core/AudioGraph";
 
 interface AudioParameterWrapperProps {
     children: ReactNode;
