@@ -18,7 +18,7 @@ function App() {
                 <Editor />
               </Panel>
               <PanelResizeHandle />
-              <Panel defaultSize={33} maxSize={75}>
+              <Panel defaultSize={33} maxSize={75} hidden={true}>
                 <TimelineComponent
                   time={0}
                   model={{
