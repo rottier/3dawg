@@ -10,7 +10,7 @@
     "build": "rimraf ./dist && wasm-pack build --out-dir dist/wasm && tsc -b && vite build --emptyOutDir=false",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "watch": "cargo watch -i .gitignore -i \"pkg/*\" -s \"wasm-pack build\"",
+    "watch": "cargo watch -i .gitignore -i \"dist/wasm/*\" -s \"wasm-pack build\"",
     "predeploy": "yarn build",
     "deploy": "yarn gh-pages -d build"
   },
