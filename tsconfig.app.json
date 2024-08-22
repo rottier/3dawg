@@ -21,7 +21,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    "paths": {
+      "@wasm": ["./dist/wasm"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "dist"],
 }

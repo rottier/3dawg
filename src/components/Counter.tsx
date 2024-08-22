@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { setCountUpdateCallback, increment } from '../../pkg';
+import { setCountUpdateCallback, increment } from '@wasm';
 
 const Counter = () => {
     const [countValue, setCountValue] = useState(0);
