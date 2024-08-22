@@ -26,7 +26,3 @@ dist-ssr
 # Rust generated files
 /target/
 /pkg/
-
-# Lock files
-Cargo.lock
-yarn.lock
