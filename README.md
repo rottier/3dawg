@@ -2,4 +2,4 @@
 
 ![Three Dog Logo](public/3dawg.svg "3DAWG")
 
-Under construction.
+Under construction...
