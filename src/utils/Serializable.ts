@@ -21,7 +21,6 @@ export function Serializable(customKey?: string) {
 
         if (!serializableProps) {
             serializableProps = new Map<string, string>();
-            console.log(target.constructor, "?!?!");
             serializablePropsMap.set(target.constructor, serializableProps);
         }
 
