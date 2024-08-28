@@ -3,7 +3,6 @@ import { AudioNodeProps } from "../.";
 import { AudioGraphNodeOscillator } from "../../../../core/AudioGraph/Nodes";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioKnob } from "../AudioParameters/Knob";
-import { getNearestNoteFrequency } from "../../../../utils/Music";
 import { AudioSelect } from "../AudioParameters/Select";
 
 export const Oscillator: FunctionComponent = (
@@ -20,9 +19,17 @@ export const Oscillator: FunctionComponent = (
           angleMin={-135 - 360}
           angleMax={135 + 360}
           logarithmic={true}
-          modifyValue={(value) => getNearestNoteFrequency(value).noteFrequency}
           linkable={true}
-          formatLabel={(value) => value > 999 ? `${Math.round(value / 1000)} kHz` : `${Math.round(value)} Hz`}
+          formatLabel={(newValue) => {
+            switch (true) {
+              case newValue >= 1000:
+                return`${Math.round(newValue / 1000)} kHz`;
+              case newValue < 10:
+                return `${Math.round(newValue * 1000)} mHz`;
+              default:
+                return `${Math.round(newValue)} Hz`;
+            }          
+          }}
         />
         <AudioKnob<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}
