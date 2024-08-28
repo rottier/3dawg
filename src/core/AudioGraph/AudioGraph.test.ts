@@ -6,7 +6,7 @@ vi.mock('standardized-audio-context', () => ({
   }));
 
 import { AudioGraphNodes } from ".";
-import { AudioGraph } from "./AudioGraph";
+import { AudioGraph } from "./Nodes/AudioGraph";
 import { assert, beforeEach, describe, test, vi } from 'vitest';
 import { AudioGraphNodeOscillator } from "./Nodes";
 

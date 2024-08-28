@@ -104,7 +104,7 @@ export function Editor() {
           onClick={() => {
             playing
               ? graph.stop()
-              : graph.play();
+              : graph.start();
             setRerender(!rerender);
           }}
         >
