@@ -19,7 +19,6 @@ export type UnlinkNodes = (fromId: string, toId: string, fromParameter?: string,
 export type FindLink = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => number;
 
 export class AudioGraph extends AudioGraphNode {
-  playing = false;
   start() {
     if (this.audioContext.state !== "running" && !this.playing) {
       this.audioContext.resume();
@@ -213,7 +212,5 @@ export class AudioGraph extends AudioGraphNode {
     this.nodes = [];
     this.links = [];
     this.audioContext = audioContext;
-
-
   }
 }
