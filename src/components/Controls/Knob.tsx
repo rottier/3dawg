@@ -169,7 +169,7 @@ const Knob: React.FC<KnobProps> = ({
         }}
       />
       <div className="absolute w-24 h-24 flex items-center justify-center pointer-events-none overflow-hidden">
-        <label className="absolute text-white/80 font-mono z-[1]">
+        <label className="absolute text-white/80 font-mono z-[1] text-center whitespace-pre">
           {label}
         </label>
       </div>

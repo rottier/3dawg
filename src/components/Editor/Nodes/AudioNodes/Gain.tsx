@@ -21,13 +21,13 @@ export const Gain: FunctionComponent = ({
         formatLabel={(newValue) => {
           switch (true) {
             case newValue >= 100:
-              return `×${newValue.toFixed(0)}`;
+              return `${newValue.toFixed(0)}\n×`;
             case newValue >= 10:
-              return `×${newValue.toFixed(1)}`;
+              return `${newValue.toFixed(1)}\n×`;
             case newValue >= 1:
-              return `×${newValue.toFixed(2)}`;
+              return `${newValue.toFixed(2)}\n×`;
             default:
-              return `×${newValue.toFixed(3)}`;
+              return `${newValue.toFixed(3)}\n×`;
           }
         }}
       />

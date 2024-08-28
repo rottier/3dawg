@@ -22,12 +22,14 @@ export const Oscillator: FunctionComponent = (
           linkable={true}
           formatLabel={(newValue) => {
             switch (true) {
+              case newValue >= 10000:
+                return`${(newValue / 1000).toFixed(1)}\nkHz`;
               case newValue >= 1000:
-                return`${(newValue / 1000).toFixed(0)} kHz`;
+                return`${(newValue / 1000).toFixed(2)}\nkHz`;
               case newValue < 10:
-                return `${(newValue * 1000).toFixed(0)} mHz`;
+                return `${(newValue * 1000).toFixed(0)}\nmHz`;
               default:
-                return `${(newValue).toFixed(0)} Hz`;
+                return `${(newValue).toFixed(0)}\nHz`;
             }          
           }}
         />
@@ -40,7 +42,7 @@ export const Oscillator: FunctionComponent = (
           angleMin={-135 - 360}
           angleMax={135 + 360}
           linkable={true}
-          formatLabel={(value) => `${Math.round(value)} ¢`}
+          formatLabel={(value) => `${(value).toFixed(0)}\n¢`}
         />
         <AudioSelect<AudioGraphNodeOscillator>
           audioNode={props.data?.audioNode}

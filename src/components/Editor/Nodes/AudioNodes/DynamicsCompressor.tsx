@@ -18,7 +18,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
-          formatLabel={(value) => `${(value).toFixed(0)} dB`}
+          formatLabel={(value) => `${(value).toFixed(0)}\ndB`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -29,7 +29,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
-          formatLabel={(value) => `${(value).toFixed(0)} dB`}
+          formatLabel={(value) => `${(value).toFixed(0)}\ndB`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -40,7 +40,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
-          formatLabel={(value) => `${(value).toFixed(0)} dB`}
+          formatLabel={(value) => `${(value).toFixed(0)}\ndB`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -51,7 +51,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
-          formatLabel={(value) => `${(value * 1000).toFixed(0)} ms`}
+          formatLabel={(value) => `${(value * 1000).toFixed(0)}\nms`}
         />
         <AudioKnob<AudioGraphNodeDynamicsCompressor>
           audioNode={data?.audioNode}
@@ -62,7 +62,7 @@ export const DynamicsCompressor: FunctionComponent = ({
           angleMin={-135}
           angleMax={135}
           linkable={true}
-          formatLabel={(value) => `${(value * 1000).toFixed(0)} ms`}
+          formatLabel={(value) => `${(value * 1000).toFixed(0)}\nms`}
         />
       </div>
     </AudioNodeWrapper>
