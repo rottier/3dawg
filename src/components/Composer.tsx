@@ -53,12 +53,6 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children })
     }, [activeType]);
 
     useEffect(() => {
-        const newSubGraph = new AudioGraph();
-        newSubGraph.label = "MySubgraph";
-        const gain = newSubGraph.addAudioNode(AudioGraphNodes.Gain);
-        const out = newSubGraph.addAudioNode(AudioGraphNodes.Output);
-        newSubGraph.linkNodes(gain, out);
-        setSubGraph(newSubGraph);
 
         return () => {
             graph.stop();

@@ -34,9 +34,6 @@ export function Editor() {
         const node = graph.getAudioNode(nodeId);
 
         if (node) {
-          // TODO: remove this after serialization is implemented
-          node.label = data.label;
-
           const newNodes = [
             ...nodes,
             {
