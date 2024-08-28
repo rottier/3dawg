@@ -34,7 +34,7 @@ const Knob: React.FC<KnobProps> = ({
 
   useEffect(() => {
     setLabel(formatLabel(value, percentage));
-  }, [value, formatLabel]);
+  }, [value, percentage, formatLabel]);
 
   const handleStart = (e: PointerEvent) => {
     if (knobRef.current) {
@@ -132,9 +132,19 @@ const Knob: React.FC<KnobProps> = ({
 
   useEffect(() => {
     const range = valueMax - valueMin;
-    const percentage = Math.round(((value - valueMin) / range) * 100);
+    let percentage: number;
+
+    if (logarithmic) {
+      const logMin = Math.log(valueMin);
+      const logMax = Math.log(valueMax);
+      const logValue = Math.log(value);
+      percentage = Math.round(((logValue - logMin) / (logMax - logMin)) * 100);
+    } else {
+      percentage = Math.round(((value - valueMin) / range) * 100);
+    }
+
     setPercentage(percentage || 0);
-  }, [valueMax, valueMin, value]);
+  }, [value, valueMin, valueMax, logarithmic]);
 
   return (
     <div>
