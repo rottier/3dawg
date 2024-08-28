@@ -49,6 +49,7 @@ const Knob: React.FC<KnobProps> = ({
       setIsDragging(true);
       setStartRotation(initialRotation);
       setStartValue(value);
+      setCumulativeRotation(0);
     }
   };
 
@@ -70,9 +71,7 @@ const Knob: React.FC<KnobProps> = ({
         deltaRotation += 360;
       }
 
-      const newCumulativeRotation = cumulativeRotation + deltaRotation;
-      setCumulativeRotation(newCumulativeRotation);
-      setStartRotation(currentRotation);
+      let newCumulativeRotation = cumulativeRotation + deltaRotation;
 
       const angleRange = angleMax - angleMin;
       let newValue: number;
@@ -89,7 +88,7 @@ const Knob: React.FC<KnobProps> = ({
 
         newValue = Math.exp(
           Math.round(Math.log(newValue) / Math.log(1 + valueStep / 100)) *
-            Math.log(1 + valueStep / 100)
+          Math.log(1 + valueStep / 100)
         );
       } else {
         newValue = startValue + (newCumulativeRotation / angleRange) * range;
@@ -97,15 +96,28 @@ const Knob: React.FC<KnobProps> = ({
         newValue = Math.round(newValue / valueStep) * valueStep;
       }
 
-      newValue = Math.max(valueMin, Math.min(valueMax, newValue));
+      if (newValue <= valueMin) {
+        newValue = valueMin;
+        if (deltaRotation < 0) {
+          newCumulativeRotation = cumulativeRotation;
+        }
+      } else if (newValue >= valueMax) {
+        newValue = valueMax;
+        if (deltaRotation > 0) {
+          newCumulativeRotation = cumulativeRotation;
+        }
+      } else {
+        setCumulativeRotation(newCumulativeRotation);
+      }
+
+      setStartRotation(currentRotation);
+
       onValueChange(newValue);
     }
   };
 
   const handleEnd = () => {
     setIsDragging(false);
-    setCumulativeRotation(0);
-    setStartRotation(0);
   };
 
   const handlePointerDown = usePointerMove({
