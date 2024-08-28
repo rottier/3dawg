@@ -23,11 +23,11 @@ export const Oscillator: FunctionComponent = (
           formatLabel={(newValue) => {
             switch (true) {
               case newValue >= 1000:
-                return`${Math.round(newValue / 1000)} kHz`;
+                return`${(newValue / 1000).toFixed(0)} kHz`;
               case newValue < 10:
-                return `${Math.round(newValue * 1000)} mHz`;
+                return `${(newValue * 1000).toFixed(0)} mHz`;
               default:
-                return `${Math.round(newValue)} Hz`;
+                return `${(newValue).toFixed(0)} Hz`;
             }          
           }}
         />
