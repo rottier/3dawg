@@ -12,7 +12,7 @@ import {
 
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
-import { AudioGraphNodes, TrayItemData } from "../../core/AudioGraph";
+import { TrayItemData } from "../../core/AudioGraph";
 import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { useComposer } from "../Composer";
 import { AudioGraphFlowNode } from ".";
@@ -28,7 +28,6 @@ export function Editor() {
       if (event.over?.id === "graph") {
         const data = event.active.data.current as TrayItemData;
         const nodeType = data.type;
-        console.log(data);
 
         const nodeId = graph.addAudioNode(nodeType);
         const node = graph.getAudioNode(nodeId);

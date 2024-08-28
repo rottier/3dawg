@@ -3,7 +3,6 @@ import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from 
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { AudioGraph } from "./Nodes/AudioGraph";
 import { Subscribable } from "../../utils/Subscribable";
-import { fromJSON } from "postcss";
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -23,7 +22,9 @@ export abstract class AudioGraphNode<
    * The audio context used by the audio graph.
    */
   public readonly context: AudioContext;
-  public readonly id: string;
+
+  public readonly id: string = "";
+
   public get node() {
     return this._node;
   }
@@ -31,7 +32,9 @@ export abstract class AudioGraphNode<
     this._node = node;
   }
   private _node: Node | undefined;
+
   public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
+
   public label: string = AudioGraphNodes[this.type];
   /**
    * Retrieves an array of AudioGraphLink objects that are linked to this AudioGraphNode.
@@ -51,6 +54,7 @@ export abstract class AudioGraphNode<
   protected _parametersDefault: Partial<Parameters>;
   protected _parameters: Partial<Parameters>;
   public readonly onParameterChange = new Subscribable<Partial<Parameters>>(() => this._parameters);
+
   public get parameters() {
     return this._parameters;
   }
