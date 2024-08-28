@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import usePointerMove from "../../hooks/usePointerMove";
 
 interface KnobProps {
   valueMin: number;
@@ -35,87 +36,7 @@ const Knob: React.FC<KnobProps> = ({
     setLabel(formatLabel(value, percentage));
   }, [value, formatLabel]);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && knobRef.current) {
-        const rect = knobRef.current.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        const deltaX = e.clientX - centerX;
-        const deltaY = e.clientY - centerY;
-
-        const currentRotation = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-        let deltaRotation = currentRotation - startRotation;
-
-        if (deltaRotation > 180) {
-          deltaRotation -= 360;
-        } else if (deltaRotation < -180) {
-          deltaRotation += 360;
-        }
-
-        const newCumulativeRotation = cumulativeRotation + deltaRotation;
-        setCumulativeRotation(newCumulativeRotation);
-        setStartRotation(currentRotation);
-
-        const angleRange = angleMax - angleMin;
-        let newValue: number;
-        const range = valueMax - valueMin;
-
-        if (logarithmic) {
-          const logMin = Math.log(valueMin);
-          const logMax = Math.log(valueMax);
-          const scale = (logMax - logMin) / angleRange;
-          const deltaLogValue = newCumulativeRotation * scale;
-          const logNewValue = Math.log(startValue) + deltaLogValue;
-
-          newValue = Math.exp(logNewValue);
-
-          // Apply step size in logarithmic space
-          newValue = Math.exp(
-            Math.round(Math.log(newValue) / Math.log(1 + valueStep / 100)) *
-            Math.log(1 + valueStep / 100)
-          );
-        } else {
-          newValue = startValue + (newCumulativeRotation / angleRange) * range;
-
-          // Apply linear step size
-          newValue = Math.round(newValue / valueStep) * valueStep;
-        }
-
-        newValue = Math.max(valueMin, Math.min(valueMax, newValue));
-        onValueChange(newValue);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setCumulativeRotation(0);
-      setStartRotation(0);
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [
-    isDragging,
-    startRotation,
-    cumulativeRotation,
-    startValue,
-    valueMin,
-    valueMax,
-    angleMin,
-    angleMax,
-    onValueChange,
-    logarithmic,
-    valueStep,
-  ]);
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleStart = (e: PointerEvent) => {
     if (knobRef.current) {
       const rect = knobRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -130,6 +51,68 @@ const Knob: React.FC<KnobProps> = ({
       setStartValue(value);
     }
   };
+
+  const handleMove = (e: PointerEvent) => {
+    if (isDragging && knobRef.current) {
+      const rect = knobRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const deltaX = e.clientX - centerX;
+      const deltaY = e.clientY - centerY;
+
+      const currentRotation = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+      let deltaRotation = currentRotation - startRotation;
+
+      if (deltaRotation > 180) {
+        deltaRotation -= 360;
+      } else if (deltaRotation < -180) {
+        deltaRotation += 360;
+      }
+
+      const newCumulativeRotation = cumulativeRotation + deltaRotation;
+      setCumulativeRotation(newCumulativeRotation);
+      setStartRotation(currentRotation);
+
+      const angleRange = angleMax - angleMin;
+      let newValue: number;
+      const range = valueMax - valueMin;
+
+      if (logarithmic) {
+        const logMin = Math.log(valueMin);
+        const logMax = Math.log(valueMax);
+        const scale = (logMax - logMin) / angleRange;
+        const deltaLogValue = newCumulativeRotation * scale;
+        const logNewValue = Math.log(startValue) + deltaLogValue;
+
+        newValue = Math.exp(logNewValue);
+
+        newValue = Math.exp(
+          Math.round(Math.log(newValue) / Math.log(1 + valueStep / 100)) *
+            Math.log(1 + valueStep / 100)
+        );
+      } else {
+        newValue = startValue + (newCumulativeRotation / angleRange) * range;
+
+        newValue = Math.round(newValue / valueStep) * valueStep;
+      }
+
+      newValue = Math.max(valueMin, Math.min(valueMax, newValue));
+      onValueChange(newValue);
+    }
+  };
+
+  const handleEnd = () => {
+    setIsDragging(false);
+    setCumulativeRotation(0);
+    setStartRotation(0);
+  };
+
+  const handlePointerDown = usePointerMove({
+    onStart: handleStart,
+    onMove: handleMove,
+    onEnd: handleEnd,
+  });
 
   const getRotation = (): number => {
     const range = valueMax - valueMin;
@@ -184,7 +167,7 @@ const Knob: React.FC<KnobProps> = ({
       </div>
       <div
         ref={knobRef}
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
         className="w-24 h-24 rounded-full transparent cursor-pointer border-4 border-white/80"
         style={{
           transform: `rotate(${getRotation()}deg)`,
