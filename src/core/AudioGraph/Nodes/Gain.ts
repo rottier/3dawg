@@ -3,6 +3,10 @@ import { AudioGraphNodes } from "..";
 import { AudioGraph } from "../AudioGraph";
 import { AudioGraphNode } from "../AudioGraphNode";
 
+const defaults = {
+  gain: 0.5,
+};
+
 export class AudioGraphNodeGain extends AudioGraphNode<
   GainNode<TContext>,
   IGainOptions
@@ -12,9 +16,8 @@ export class AudioGraphNodeGain extends AudioGraphNode<
 
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
-    this._parameters = {
-      gain: 0.5,
-    };
+    this._parametersDefault = defaults;
+    this._parameters = {...defaults};
     this.reconstruct();
   }
 }

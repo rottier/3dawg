@@ -11,6 +11,7 @@ interface KnobProps {
   logarithmic: boolean;
   valueStep: number;
   formatLabel?: (value: number, percentage: number) => string;
+  onDoubleClick?: () => void;
 }
 
 const Knob: React.FC<KnobProps> = ({
@@ -23,6 +24,7 @@ const Knob: React.FC<KnobProps> = ({
   logarithmic,
   valueStep,
   formatLabel = (_, percentage) => `${percentage}%`,
+  onDoubleClick
 }) => {
   const knobRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -159,7 +161,7 @@ const Knob: React.FC<KnobProps> = ({
   }, [value, valueMin, valueMax, logarithmic]);
 
   return (
-    <div>
+    <div onDoubleClick={onDoubleClick}>
       <div
         className="absolute rounded-full w-24 h-24 pointer-events-none opacity-10"
         style={{

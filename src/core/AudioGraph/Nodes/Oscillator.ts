@@ -1,7 +1,14 @@
-import { TContext, IOscillatorOptions, OscillatorNode, AudioContext } from "standardized-audio-context";
+import { TContext, IOscillatorOptions, OscillatorNode, AudioContext, TOscillatorType } from "standardized-audio-context";
 import { AudioGraphNodes } from "..";
 import { AudioGraph } from "../AudioGraph";
 import { AudioGraphNode } from "../AudioGraphNode";
+
+const defaults = {
+  detune: 0,
+  frequency: 20,
+  periodicWave: undefined,
+  type: "sawtooth" as TOscillatorType,
+}
 
 export class AudioGraphNodeOscillator extends AudioGraphNode<
   OscillatorNode<TContext>,
@@ -15,12 +22,8 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
 
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
-    this._parameters = {
-      detune: 0,
-      frequency: 20,
-      periodicWave: undefined,
-      type: "sawtooth",
-    };
+    this._parametersDefault = defaults;
+    this._parameters = {...defaults};
     this.reconstruct();
   }
 }

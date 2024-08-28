@@ -50,6 +50,7 @@ export const AudioKnob = <T extends AudioGraphNode>({
           }}
           logarithmic={logarithmic}
           formatLabel={formatLabel}
+          onDoubleClick={() => audioNode?.resetParameter(String(parameterName))}
         />
     </AudioParameterWrapper>
   );

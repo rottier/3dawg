@@ -2,6 +2,7 @@ import { uniqueId } from "lodash";
 import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from "standardized-audio-context";
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { AudioGraph } from "./AudioGraph";
+import { Subscribable } from "../../utils/Subscribable";
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -45,14 +46,20 @@ export abstract class AudioGraphNode<
   public readonly linksTo: () => AudioGraphLink[] = () =>
     this.graph.links
       .filter((link) => link.from.id === this.id)
+  protected _parametersDefault: Partial<Parameters>;
   protected _parameters: Partial<Parameters>;
+  public readonly onParameterChange = new Subscribable<Partial<Parameters>>(() => this._parameters);
   public get parameters() {
     return this._parameters;
   }
   public set parameters(parameters: Partial<Parameters>) {
+    let changed = false;
+
     Object.entries(parameters).forEach(([key, value]) => {
       if (key in this._parameters) {
         this._parameters[key as keyof Parameters] = value;
+        changed = true;
+
         if (this.node) {
           const nodeAsRecord = this.node as Record<string, any>;
 
@@ -74,6 +81,9 @@ export abstract class AudioGraphNode<
             }
           }
         }
+
+        if (changed)
+          this.onParameterChange.notify();
       }
     });
   }
@@ -124,6 +134,8 @@ export abstract class AudioGraphNode<
   reconstruct = () => { };
   onStart = () => { };
   onStop = () => { };
+  resetParameters = () => this.parameters = this._parametersDefault;
+  resetParameter = (name: string) => this.parameters = { [name]: this._parametersDefault[name] as Parameters[string] } as Partial<Parameters>;
 
   constructor(context: AudioContext, graph: AudioGraph) {
     this.graph = graph;
@@ -131,5 +143,6 @@ export abstract class AudioGraphNode<
     this.id = uniqueId();
     this.playing = false;
     this._parameters = {};
+    this._parametersDefault = {};
   }
 }

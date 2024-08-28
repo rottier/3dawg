@@ -3,6 +3,14 @@ import { AudioGraphNodes } from "..";
 import { AudioGraph } from "../AudioGraph";
 import { AudioGraphNode } from "../AudioGraphNode";
 
+const defaults = {
+  threshold: -24,
+  knee: 30,
+  ratio: 12,
+  attack: 0.003,
+  release: 0.25,
+};
+
 export class AudioGraphNodeDynamicsCompressor extends AudioGraphNode<
   DynamicsCompressorNode<TContext>,
   IDynamicsCompressorOptions
@@ -12,13 +20,8 @@ export class AudioGraphNodeDynamicsCompressor extends AudioGraphNode<
 
   constructor(context: AudioContext, graph: AudioGraph) {
     super(context, graph);
-    this._parameters = {
-      threshold: -24,
-      knee: 30,
-      ratio: 12,
-      attack: 0.003,
-      release: 0.25,
-    };
+    this._parametersDefault = defaults;
+    this._parameters = {...defaults};
     this.reconstruct();
   }
 }
