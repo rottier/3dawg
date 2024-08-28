@@ -8,8 +8,6 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmit": true,
-    // "emitDecoratorMetadata": true,
-    // "experimentalDecorators": true,
   },
   "include": ["vite.config.ts"]
 }
