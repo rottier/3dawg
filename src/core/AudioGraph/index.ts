@@ -60,3 +60,9 @@ export interface Timeline extends Composition {
     position: number;
     state: TimelineState;
 }
+
+export type TrayItemData = {
+    id: string;
+    type: AudioGraphNodes;
+    label: string;
+}

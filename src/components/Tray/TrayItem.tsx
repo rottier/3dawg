@@ -1,19 +1,26 @@
 import React from 'react';
-import { AudioGraphNodes } from '../../core/AudioGraph';
+import { AudioGraphNodes, TrayItemData } from '../../core/AudioGraph';
 import { useDraggable } from '@dnd-kit/core';
 
 interface TrayItemProps {
     node: AudioGraphNodes;
+    id?: string;
+    label?: string;
 }
 
-const TrayItem: React.FC<TrayItemProps> = ({node}) => {
+const TrayItem: React.FC<TrayItemProps> = ({node, id = node, label = node}) => {
     const {attributes, listeners, setNodeRef} = useDraggable({
-        id: node,
+        id: id,
+        data: {
+            type: node,
+            id: id,
+            label: label
+        } as TrayItemData
       });
       
     return (
         <li ref={setNodeRef} {...listeners} {...attributes}>
-        <a>{node}</a>
+        <a>{label}</a>
 </li>
     );
 };

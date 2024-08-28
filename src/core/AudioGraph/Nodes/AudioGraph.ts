@@ -19,6 +19,9 @@ export type UnlinkNodes = (fromId: string, toId: string, fromParameter?: string,
 export type FindLink = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => number;
 
 export class AudioGraph extends AudioGraphNode {
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Graph;
+  reconstruct = () => (this.nodes.forEach((node) => node.reconstruct()));
+
   start() {
     if (this.audioContext.state !== "running" && !this.playing) {
       this.audioContext.resume();
@@ -196,7 +199,7 @@ export class AudioGraph extends AudioGraphNode {
     return success;
   };
 
-  constructor(context?: AudioContext, graph?: AudioGraph) {
+  constructor(context?: AudioContext, graph?: AudioGraph, loadSerialized?: any) {
     let audioContext: AudioContext;
       // Allow to supply a custom audio context
       if (context) audioContext = context;

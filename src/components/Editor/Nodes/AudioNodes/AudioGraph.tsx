@@ -7,7 +7,7 @@ export const Graph: FunctionComponent = (
   props: AudioNodeProps<AudioGraph>
 ) => {
   return (
-    <AudioNodeWrapper header="Graph" to={true}>
+    <AudioNodeWrapper header={props.data?.audioNode?.label ?? "Graph"} to={true}>
       <></>
     </AudioNodeWrapper>
   );

@@ -3,6 +3,7 @@ import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from 
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { AudioGraph } from "./Nodes/AudioGraph";
 import { Subscribable } from "../../utils/Subscribable";
+import { fromJSON } from "postcss";
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -31,6 +32,7 @@ export abstract class AudioGraphNode<
   }
   private _node: Node | undefined;
   public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
+  public label: string = AudioGraphNodes[this.type];
   /**
    * Retrieves an array of AudioGraphLink objects that are linked to this AudioGraphNode.
    * @returns {AudioGraphLink[]} The array of relevant links.
