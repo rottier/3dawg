@@ -200,6 +200,7 @@ export class AudioGraph extends AudioGraphNode {
   };
 
   constructor(context?: AudioContext, graph?: AudioGraph, loadSerialized?: any) {
+    loadSerialized;
     let audioContext: AudioContext;
       // Allow to supply a custom audio context
       if (context) audioContext = context;
