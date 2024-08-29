@@ -1,12 +1,13 @@
 import { AudioGraphNode } from "./AudioGraphNode";
-export * from "./AudioGraph";
+export * from "./Nodes/AudioGraph";
 
 export enum AudioGraphNodes {
     Invalid = "Invalid",
     Output = "Output",
     Oscillator = "Oscillator",
     Gain = "Gain",
-    DynamicsCompressor = "DynamicsCompressor"
+    DynamicsCompressor = "DynamicsCompressor",
+    Graph = "Graph"
 }
 
 export type AudioGraphNodeType = keyof typeof AudioGraphNodes;
@@ -58,4 +59,10 @@ export enum TimelineState {
 export interface Timeline extends Composition {
     position: number;
     state: TimelineState;
+}
+
+export type TrayItemData = {
+    id: string;
+    type: AudioGraphNodes;
+    label: string;
 }

@@ -1,6 +1,6 @@
 import { TContext, IDynamicsCompressorOptions, DynamicsCompressorNode, AudioContext } from "standardized-audio-context";
 import { AudioGraphNodes } from "..";
-import { AudioGraph } from "../AudioGraph";
+import { AudioGraph } from "./AudioGraph";
 import { AudioGraphNode } from "../AudioGraphNode";
 
 const defaults = {

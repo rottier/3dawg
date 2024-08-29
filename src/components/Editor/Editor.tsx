@@ -7,15 +7,17 @@ import {
   useReactFlow,
   ReactFlowProvider,
   OnConnect,
+  OnDelete,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
-import { AudioGraphNodes } from "../../core/AudioGraph";
+import { TrayItemData } from "../../core/AudioGraph";
 import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { useComposer } from "../Composer";
 import { AudioGraphFlowNode } from ".";
 import { NodeTypes } from "./Nodes";
+import { serialize } from "../../utils/Serializable";
 
 const proOptions = { hideAttribution: true };
 
@@ -25,9 +27,14 @@ export function Editor() {
   useDndMonitor({
     onDragEnd(event) {
       if (event.over?.id === "graph") {
-        const nodeType = event.active.id as AudioGraphNodes;
+        const data = event.active.data.current as TrayItemData;
+        const nodeType = data.type;
+
         const nodeId = graph.addAudioNode(nodeType);
         const node = graph.getAudioNode(nodeId);
+
+        if (node)
+          console.log(serialize(node));
 
         if (node) {
           const newNodes = [
@@ -71,6 +78,14 @@ export function Editor() {
     [graph]
   );
 
+  const onDelete = useCallback<OnDelete>(
+    (params) => {
+      params.nodes.forEach((node) => graph.removeAudioNode(node.id));
+      params.edges.forEach((edge) => graph.unlinkNodes(edge.source, edge.target, edge.sourceHandle || undefined, edge.targetHandle || undefined));
+    },
+    [graph]
+  );
+
   useEffect(() => {
     let newEdges: typeof edges = [];
     links.forEach((link) =>
@@ -90,6 +105,7 @@ export function Editor() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onDelete={onDelete}
           proOptions={proOptions}
           colorMode="light"
           minZoom={0.1}
@@ -104,7 +120,7 @@ export function Editor() {
           onClick={() => {
             playing
               ? graph.stop()
-              : graph.play();
+              : graph.start();
             setRerender(!rerender);
           }}
         >

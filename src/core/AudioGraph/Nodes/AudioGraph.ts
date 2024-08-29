@@ -1,14 +1,14 @@
 import { AudioContext } from "standardized-audio-context";
-import { AudioGraphLink, AudioGraphNodes } from ".";
+import { AudioGraphLink, AudioGraphNodes } from "..";
 import { uniqueId } from "lodash";
 import {
   AudioGraphNodeDynamicsCompressor,
   AudioGraphNodeGain,
   AudioGraphNodeOscillator,
   AudioGraphNodeOutput,
-} from "./Nodes";
-import { AudioGraphNode } from "./AudioGraphNode";
-import { Subscribable } from "../../utils/Subscribable";
+} from ".";
+import { AudioGraphNode } from "../AudioGraphNode";
+import { Subscribable } from "../../../utils/Subscribable";
 
 let globalAudioContext: AudioContext;
 
@@ -18,9 +18,11 @@ export type LinkNodes = (fromId: string, toId: string, fromParameter?: string, t
 export type UnlinkNodes = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => boolean;
 export type FindLink = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => number;
 
-export class AudioGraph {
-  playing = false;
-  play() {
+export class AudioGraph extends AudioGraphNode {
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Graph;
+  reconstruct = () => (this.nodes.forEach((node) => node.reconstruct()));
+
+  start() {
     if (this.audioContext.state !== "running" && !this.playing) {
       this.audioContext.resume();
     }
@@ -61,6 +63,9 @@ export class AudioGraph {
         break;
       case AudioGraphNodes.DynamicsCompressor:
         newNode = new AudioGraphNodeDynamicsCompressor(this.audioContext, this);
+        break;
+      case AudioGraphNodes.Graph:
+        newNode = new AudioGraph(this.audioContext, this);
         break;
       default:
         throw `Could not add audio graph node, type unknown: ${type}`;
@@ -138,7 +143,7 @@ export class AudioGraph {
 
         if (this.playing) {
           this.stop();
-          this.play();
+          this.start();
         }
 
         this.onLinks.notify();
@@ -185,7 +190,7 @@ export class AudioGraph {
 
     if (this.playing) {
       this.stop();
-      this.play();
+      this.start();
     }
 
     if (success)
@@ -194,18 +199,21 @@ export class AudioGraph {
     return success;
   };
 
-  constructor(context?: AudioContext) {
+  constructor(context?: AudioContext, graph?: AudioGraph, loadSerialized?: any) {
+    let audioContext: AudioContext;
+      // Allow to supply a custom audio context
+      if (context) audioContext = context;
+      else {
+        if (!globalAudioContext)
+          // Create a global audio context if none exists
+          globalAudioContext = new AudioContext();
+
+          audioContext = globalAudioContext;
+      }
+    super(audioContext, graph);
+
     this.nodes = [];
     this.links = [];
-    this.audioContext = context || globalAudioContext;
-
-    // Allow to supply a custom audio context
-    if (context) this.audioContext = context;
-    else {
-      if (!globalAudioContext)
-        // Create a global audio context if none exists
-        globalAudioContext = new AudioContext();
-      this.audioContext = globalAudioContext;
-    }
+    this.audioContext = audioContext;
   }
 }

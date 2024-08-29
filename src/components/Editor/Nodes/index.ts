@@ -1,5 +1,5 @@
 import { AudioGraphNodes } from "../../../core/AudioGraph";
-import { DynamicsCompressor, Gain, Oscillator, Output } from "./AudioNodes";
+import { DynamicsCompressor, Gain, Oscillator, Output, Graph } from "./AudioNodes";
 import { NodeProps } from "@xyflow/react";
 export interface AudioNodeProps<AudioGraphNode> extends Partial<NodeProps>{
     data?: {
@@ -12,4 +12,5 @@ export const NodeTypes = {
     [`${AudioGraphNodes.Oscillator}`]: Oscillator,
     [`${AudioGraphNodes.Gain}`]: Gain,
     [`${AudioGraphNodes.DynamicsCompressor}`]: DynamicsCompressor,
+    [`${AudioGraphNodes.Graph}`]: Graph,
 }

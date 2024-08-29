@@ -5,7 +5,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), wasm()],
+  plugins: [react({ tsDecorators: true }), wasm()],
   base: "./",
   resolve: {
     alias: {
