@@ -17,7 +17,6 @@ import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { useComposer } from "../Composer";
 import { AudioGraphFlowNode } from ".";
 import { NodeTypes } from "./Nodes";
-import { serialize } from "../../utils/Serializable";
 
 const proOptions = { hideAttribution: true };
 
@@ -32,9 +31,6 @@ export function Editor() {
 
         const nodeId = graph.addAudioNode(nodeType);
         const node = graph.getAudioNode(nodeId);
-
-        if (node)
-          console.log(serialize(node));
 
         if (node) {
           const newNodes = [

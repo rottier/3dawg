@@ -3,7 +3,6 @@ import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from 
 import { AudioGraphLink, AudioGraphNodes } from ".";
 import { AudioGraph } from "./Nodes/AudioGraph";
 import { Subscribable } from "../../utils/Subscribable";
-import { Serializable } from "../../utils/Serializable";
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -24,7 +23,6 @@ export abstract class AudioGraphNode<
    */
   public readonly context: AudioContext;
 
-  @Serializable()
   public readonly id: string = "";
 
   public get node() {
