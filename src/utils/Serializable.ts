@@ -17,11 +17,11 @@ export function Serializable(customKey?: string) {
         }
 
         const effectiveKey = customKey || String(propertyKey);
-        let serializableProps = serializablePropsMap.get(target.constructor);
+        let serializableProps = serializablePropsMap.get(target?.constructor);
 
         if (!serializableProps) {
             serializableProps = new Map<string, string>();
-            serializablePropsMap.set(target.constructor, serializableProps);
+            serializablePropsMap.set(target?.constructor, serializableProps);
         }
 
         serializableProps.set(String(propertyKey), effectiveKey);
@@ -35,7 +35,7 @@ export function Serializable(customKey?: string) {
  */
 export function serialize(obj: any): string {
     const jsonObj: any = {};
-    const serializableProps = serializablePropsMap.get(obj.constructor);
+    const serializableProps = serializablePropsMap.get(obj?.constructor);
 
     if (serializableProps) {
         for (const [propertyKey, customKey] of serializableProps) {
