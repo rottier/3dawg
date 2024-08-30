@@ -1,8 +1,7 @@
 import "./App.css";
 import TimelineComponent from "./components/Timeline";
-import Editor from "./components/Editor/Editor";
+import { Editor } from "./components/Editor";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import Tray from "./components/Tray/Tray";
 import { ComposerProvider } from "./components/Composer";
 
 function App() {
@@ -11,8 +10,6 @@ function App() {
     <main className="w-dvw h-dvh justify-between">
       <div className="fixed w-full h-full bg-secondary pointer-events-none -z-10" />
       <ComposerProvider>
-        <PanelGroup direction="horizontal">
-          <Panel defaultSize={80} maxSize={80}>
             <PanelGroup direction="vertical">
               <Panel defaultSize={66} maxSize={75}>
                 <Editor />
@@ -65,12 +62,6 @@ function App() {
                 />
               </Panel>
             </PanelGroup>
-          </Panel>
-          <PanelResizeHandle />
-          <Panel defaultSize={20} maxSize={80}>
-            <Tray />
-          </Panel>
-        </PanelGroup>
       </ComposerProvider>
     </main>
   );

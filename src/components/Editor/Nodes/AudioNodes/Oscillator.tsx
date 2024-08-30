@@ -1,9 +1,9 @@
 import { FunctionComponent } from "react";
-import { AudioNodeProps } from "../.";
 import { AudioGraphNodeOscillator } from "../../../../core/AudioGraph/Nodes";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioKnob } from "../AudioParameters/Knob";
 import { AudioSelect } from "../AudioParameters/Select";
+import { AudioNodeProps } from "../types";
 
 export const Oscillator: FunctionComponent = (
   props: AudioNodeProps<AudioGraphNodeOscillator>

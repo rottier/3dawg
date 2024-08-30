@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  createElement,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   ReactFlow,
   Controls,
@@ -12,16 +18,23 @@ import {
 
 import "@xyflow/react/dist/style.css";
 import "./Editor.css";
-import { TrayItemData } from "../../core/AudioGraph";
-import { useDndMonitor, useDroppable } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragOverlay,
+  useDndMonitor,
+  useDroppable,
+} from "@dnd-kit/core";
 import { useComposer } from "../Composer";
-import { AudioGraphFlowNode } from ".";
-import { NodeTypes } from "./Nodes";
+import { NodeTypes } from "./Nodes/helpers";
+import { AudioGraphFlowNode } from "./types";
+import { TrayItemData } from "./Tray";
+import Tray from "./Tray/Tray";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 const proOptions = { hideAttribution: true };
 
-export function Editor() {
-  const {graph, links, playing} = useComposer();
+function NodeGraph() {
+  const { graph, links, playing } = useComposer();
   const reactFlow = useReactFlow();
   useDndMonitor({
     onDragEnd(event) {
@@ -69,7 +82,12 @@ export function Editor() {
 
   const onConnect = useCallback<OnConnect>(
     (params) => {
-      graph.linkNodes(params.source, params.target, params.sourceHandle || undefined, params.targetHandle || undefined);
+      graph.linkNodes(
+        params.source,
+        params.target,
+        params.sourceHandle || undefined,
+        params.targetHandle || undefined
+      );
     },
     [graph]
   );
@@ -77,7 +95,14 @@ export function Editor() {
   const onDelete = useCallback<OnDelete>(
     (params) => {
       params.nodes.forEach((node) => graph.removeAudioNode(node.id));
-      params.edges.forEach((edge) => graph.unlinkNodes(edge.source, edge.target, edge.sourceHandle || undefined, edge.targetHandle || undefined));
+      params.edges.forEach((edge) =>
+        graph.unlinkNodes(
+          edge.source,
+          edge.target,
+          edge.sourceHandle || undefined,
+          edge.targetHandle || undefined
+        )
+      );
     },
     [graph]
   );
@@ -85,7 +110,13 @@ export function Editor() {
   useEffect(() => {
     let newEdges: typeof edges = [];
     links.forEach((link) =>
-      newEdges.push({ id: link.id, source: link.from.id, target: link.to.id, sourceHandle: link.fromParameter, targetHandle: link.toParameter })
+      newEdges.push({
+        id: link.id,
+        source: link.from.id,
+        target: link.to.id,
+        sourceHandle: link.fromParameter,
+        targetHandle: link.toParameter,
+      })
     );
     setEdges(newEdges);
   }, [links]);
@@ -105,7 +136,14 @@ export function Editor() {
           proOptions={proOptions}
           colorMode="light"
           minZoom={0.1}
-          onEdgeClick={(_, edge) => graph.unlinkNodes(edge.source, edge.target, edge.sourceHandle || undefined, edge.targetHandle || undefined)}
+          onEdgeClick={(_, edge) =>
+            graph.unlinkNodes(
+              edge.source,
+              edge.target,
+              edge.sourceHandle || undefined,
+              edge.targetHandle || undefined
+            )
+          }
         >
           <Controls />
         </ReactFlow>
@@ -114,9 +152,7 @@ export function Editor() {
         <button
           className="btn btn-wide btn-accent"
           onClick={() => {
-            playing
-              ? graph.stop()
-              : graph.start();
+            playing ? graph.stop() : graph.start();
             setRerender(!rerender);
           }}
         >
@@ -127,10 +163,65 @@ export function Editor() {
   );
 }
 
-export default function EditorWithFlow() {
+function NodeGraphWithTray() {
+  const [dragSuccess, setDragSuccess] = useState(false);
+  const [overlayComponent, setOverlayComponent] = useState<ReactNode | null>(
+    null
+  );
+  const [activeType, setActiveType] = useState<string | null>(null);
+  useDndMonitor({
+    onDragStart(event) {
+      setDragSuccess(false);
+      setActiveType(String(event.active.data.current?.type));
+    },
+    onDragEnd(event) {
+      setActiveType(null);
+      if (event.over?.id === "graph") {
+        setDragSuccess(true);
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (activeType && Object.keys(NodeTypes).includes(activeType)) {
+      const component = NodeTypes[activeType as keyof typeof NodeTypes];
+      setOverlayComponent(createElement(component));
+    } else {
+      setOverlayComponent(null);
+    }
+  }, [activeType]);
+
+  return (
+    <>
+      <PanelGroup direction="horizontal">
+        <Panel>
+          <NodeGraph />
+        </Panel>
+        <PanelResizeHandle />
+        <Panel minSize={20} defaultSize={20}>
+          <Tray />
+        </Panel>
+      </PanelGroup>
+      <>
+        {" "}
+        {!dragSuccess && (
+          <DragOverlay>
+            {overlayComponent && (
+              <div className="opacity-50">{overlayComponent}</div>
+            )}
+          </DragOverlay>
+        )}
+      </>
+    </>
+  );
+}
+
+export function Editor() {
   return (
     <ReactFlowProvider>
-      <Editor />
+      <DndContext>
+        <NodeGraphWithTray />
+      </DndContext>
     </ReactFlowProvider>
   );
 }

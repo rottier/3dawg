@@ -1,7 +1,7 @@
 import { TContext, IOscillatorOptions, OscillatorNode, AudioContext, TOscillatorType } from "standardized-audio-context";
-import { AudioGraphNodes } from "..";
-import { AudioGraph } from "./AudioGraph";
-import { AudioGraphNode } from "../AudioGraphNode";
+import { AudioGraphNode } from "./Node";
+import { AudioGraphNodes } from "../types";
+import { IAudioGraph } from "../interfaces";
 
 const defaults = {
   detune: 0,
@@ -20,7 +20,7 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
   onStart = () => this.node?.start();
   onStop = () => this.node?.stop();
 
-  constructor(context: AudioContext, graph: AudioGraph) {
+  constructor(context: AudioContext, graph: IAudioGraph) {
     super(context, graph);
     this._parametersDefault = defaults;
     this._parameters = {...defaults};

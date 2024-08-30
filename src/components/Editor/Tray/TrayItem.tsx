@@ -1,6 +1,7 @@
 import React from 'react';
-import { AudioGraphNodes, TrayItemData } from '../../core/AudioGraph';
 import { useDraggable } from '@dnd-kit/core';
+import { TrayItemData } from './types';
+import { AudioGraphNodes } from '../../../core/AudioGraph/types';
 
 interface TrayItemProps {
     node: AudioGraphNodes;

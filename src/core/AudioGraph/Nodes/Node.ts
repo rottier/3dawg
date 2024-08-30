@@ -1,8 +1,8 @@
 import { uniqueId } from "lodash";
+import { Subscribable } from "../../../utils/Subscribable";
 import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from "standardized-audio-context";
-import { AudioGraphLink, AudioGraphNodes } from ".";
-import { AudioGraph } from "./Nodes/AudioGraph";
-import { Subscribable } from "../../utils/Subscribable";
+import { AudioGraphNodes } from "../types";
+import { IAudioGraph, IAudioGraphNode } from "../interfaces";
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -17,7 +17,7 @@ interface IAudioParamNode {
 export abstract class AudioGraphNode<
   Node extends IAudioNode<TContext> = IAudioNode<TContext>,
   Parameters extends Record<string, any> = Record<string, any>
-> {
+> implements IAudioGraphNode {
   /**
    * The audio context used by the audio graph.
    */
@@ -40,7 +40,7 @@ export abstract class AudioGraphNode<
    * Retrieves an array of AudioGraphLink objects that are linked to this AudioGraphNode.
    * @returns {AudioGraphLink[]} The array of relevant links.
    */
-  public readonly linksFrom: () => AudioGraphLink[] = () =>
+  public readonly linksFrom = () =>
     this.graph?.links
       .filter((link) => link.to.id === this.id) || [];
   /**
@@ -48,12 +48,12 @@ export abstract class AudioGraphNode<
    *
    * @returns {AudioGraphLink[]} The array of relevant links.
    */
-  public readonly linksTo: () => AudioGraphLink[] = (): AudioGraphLink[] =>
+  public readonly linksTo = () =>
     this.graph?.links
       .filter((link) => link.from.id === this.id) || [];
   protected _parametersDefault: Partial<Parameters>;
   protected _parameters: Partial<Parameters>;
-  public readonly onParameterChange = new Subscribable<Partial<Parameters>>(() => this._parameters);
+  public readonly onParameterChange = new Subscribable<Partial<Record<string, any>>>(() => this._parameters);
 
   public get parameters() {
     return this._parameters;
@@ -98,7 +98,7 @@ export abstract class AudioGraphNode<
   public get isPlaying() {
     return this.playing;
   }
-  protected graph: AudioGraph | undefined;
+  protected graph: IAudioGraph | undefined;
 
   start() {
     if (this.isPlaying) {
@@ -143,7 +143,7 @@ export abstract class AudioGraphNode<
   resetParameters = () => this.parameters = this._parametersDefault;
   resetParameter = (name: string) => this.parameters = { [name]: this._parametersDefault[name] as Parameters[string] } as Partial<Parameters>;
 
-  constructor(context: AudioContext, graph?: AudioGraph) {
+  constructor(context: AudioContext, graph?: IAudioGraph) {
     this.graph = graph;
     this.context = context;
     this.id = uniqueId();

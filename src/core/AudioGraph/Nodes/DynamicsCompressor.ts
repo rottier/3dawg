@@ -1,7 +1,7 @@
 import { TContext, IDynamicsCompressorOptions, DynamicsCompressorNode, AudioContext } from "standardized-audio-context";
-import { AudioGraphNodes } from "..";
-import { AudioGraph } from "./AudioGraph";
-import { AudioGraphNode } from "../AudioGraphNode";
+import { AudioGraphNodes } from "../types";
+import { AudioGraphNode } from "./Node";
+import { IAudioGraph } from "../interfaces";
 
 const defaults = {
   threshold: -24,
@@ -18,7 +18,7 @@ export class AudioGraphNodeDynamicsCompressor extends AudioGraphNode<
   public readonly type: AudioGraphNodes = AudioGraphNodes.Gain;
   reconstruct = () => (this.node = new DynamicsCompressorNode(this.context, this.parameters));
 
-  constructor(context: AudioContext, graph: AudioGraph) {
+  constructor(context: AudioContext, graph: IAudioGraph) {
     super(context, graph);
     this._parametersDefault = defaults;
     this._parameters = {...defaults};

@@ -1,8 +1,8 @@
 import { FunctionComponent } from "react";
 import { AudioGraphNodeDynamicsCompressor } from "../../../../core/AudioGraph/Nodes";
-import { AudioNodeProps } from "..";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioKnob } from "../AudioParameters/Knob";
+import { AudioNodeProps } from "../types";
 export const DynamicsCompressor: FunctionComponent = ({
   data,
 }: AudioNodeProps<AudioGraphNodeDynamicsCompressor>) => {

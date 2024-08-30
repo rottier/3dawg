@@ -1,13 +1,13 @@
 import { TContext, IAudioDestinationNode, AudioContext } from "standardized-audio-context";
-import { AudioGraphNodes } from "..";
-import { AudioGraph } from "./AudioGraph";
-import { AudioGraphNode } from "../AudioGraphNode";
+import { AudioGraphNode } from "./Node";
+import { AudioGraphNodes } from "../types";
+import { IAudioGraph } from "../interfaces";
 
 export class AudioGraphNodeOutput extends AudioGraphNode<
   IAudioDestinationNode<TContext>
 > {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Output;
-  constructor(context: AudioContext, graph: AudioGraph) {
+  constructor(context: AudioContext, graph: IAudioGraph) {
     super(context, graph);
     this.node = this.context.destination;
   }
