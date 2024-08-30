@@ -169,6 +169,8 @@ function NodeGraphWithTray() {
     null
   );
   const [activeType, setActiveType] = useState<string | null>(null);
+  const reactFlow = useReactFlow();
+
   useDndMonitor({
     onDragStart(event) {
       setDragSuccess(false);
@@ -207,7 +209,7 @@ function NodeGraphWithTray() {
         {!dragSuccess && (
           <DragOverlay>
             {overlayComponent && (
-              <div className="opacity-50">{overlayComponent}</div>
+              <div style={{transform: `scale(${reactFlow.getZoom()})`}} className="opacity-50 origin-top-left">{overlayComponent}</div>
             )}
           </DragOverlay>
         )}
