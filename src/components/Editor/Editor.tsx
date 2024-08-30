@@ -199,7 +199,7 @@ function NodeGraphWithTray() {
         <Panel>
           <NodeGraph />
         </Panel>
-        <PanelResizeHandle />
+        {dragSuccess && <PanelResizeHandle />}
         <Panel minSize={20} defaultSize={20}>
           <Tray />
         </Panel>
@@ -209,7 +209,12 @@ function NodeGraphWithTray() {
         {!dragSuccess && (
           <DragOverlay>
             {overlayComponent && (
-              <div style={{transform: `scale(${reactFlow.getZoom()})`}} className="opacity-50 origin-top-left">{overlayComponent}</div>
+              <div
+                style={{ transform: `scale(${reactFlow.getZoom()})` }}
+                className="opacity-50 origin-top-left"
+              >
+                {overlayComponent}
+              </div>
             )}
           </DragOverlay>
         )}
