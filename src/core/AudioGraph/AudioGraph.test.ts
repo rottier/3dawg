@@ -55,7 +55,7 @@ describe("AudioGraph", () => {
 
 describe("AudioGraphNode", () => {
     const graph = new AudioGraph();
-    const graphNode = new AudioGraphNodeOscillator(graph.audioContext, graph);
+    const graphNode = new AudioGraphNodeOscillator(graph.context, graph);
 
     test("start should start the node", () => {
         graphNode.start();

@@ -1,4 +1,3 @@
-import { AudioGraphNode } from "./AudioGraphNode";
 export * from "./Nodes/AudioGraph";
 
 export enum AudioGraphNodes {
@@ -14,11 +13,11 @@ export type AudioGraphNodeType = keyof typeof AudioGraphNodes;
 
 export interface AudioGraphLink {
     id: string;
-    from: AudioGraphNode;
-    to: AudioGraphNode;
+    from: string;
+    to: string;
     fromParameter?: string;
     toParameter?: string;
-};
+}
 
 export interface Keyframe {
     position: number,

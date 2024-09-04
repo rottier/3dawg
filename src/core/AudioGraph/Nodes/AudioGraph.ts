@@ -1,16 +1,11 @@
 import { AudioContext } from "standardized-audio-context";
 import { AudioGraphLink, AudioGraphNodes } from "..";
 import { uniqueId } from "lodash";
-import {
-  AudioGraphNodeDynamicsCompressor,
-  AudioGraphNodeGain,
-  AudioGraphNodeOscillator,
-  AudioGraphNodeOutput,
-} from ".";
 import { AudioGraphNode } from "../AudioGraphNode";
 import { Subscribable } from "../../../utils/Subscribable";
-
-let globalAudioContext: AudioContext;
+import { JsonProperty, Converter } from "@paddls/ts-serializer";
+import { createAudioGraphNodeOfType, getAudioGraphNodeType } from "../AudioGraphNodeFactory";
+import { defaultSerializer } from "../../../utils/Serializable";
 
 export type AddAudioNode = (type: AudioGraphNodes) => string;
 export type RemoveAudioNode = (id: string) => boolean;
@@ -18,13 +13,109 @@ export type LinkNodes = (fromId: string, toId: string, fromParameter?: string, t
 export type UnlinkNodes = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => boolean;
 export type FindLink = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => number;
 
+class AudioGraphNodesConverter implements Converter<AudioGraphNode[], any> {
+  fromJson(jsonObj: any) {
+    try {
+      const serializer = defaultSerializer();
+      const newNodes: AudioGraphNode[] = [];
+      jsonObj.forEach((node: any) => {
+        const NodeType = getAudioGraphNodeType(node.type);
+        const newNode = serializer.deserialize(NodeType as { new(): AudioGraphNode }, node);
+        newNodes.push(newNode);
+      });
+      return newNodes;
+    }
+    catch (e) {
+      console.error(e);
+      return [];
+    }
+  }
+  
+  toJson(nodes: AudioGraphNode[] | AudioGraphNode) {
+    const serializer = defaultSerializer();
+
+    if (Array.isArray(nodes)) {
+      const nodeArr: AudioGraphNode[] = [];
+      nodes.forEach((node) => nodeArr.push(serializer.serialize(node)));
+      return nodeArr;
+    } else {
+      return serializer.serialize(nodes);
+    }
+  }
+}
+
+class AudioGraphLinksConverter implements Converter<AudioGraphLink[], any> {
+  graph: AudioGraph;
+  fromJson(jsonObj: any) {
+    try {
+      const newLinks: AudioGraphLink[] = [];
+      jsonObj.forEach((link: any) => {
+        const newLink = {
+          id: uniqueId(),
+          from: link.from.id,
+          to: link.to.id,
+          fromParameter: link.fromParameter,
+          toParameter: link.toParameter
+        };
+        newLinks.push(newLink);
+      });
+      return newLinks;
+    }
+    catch (e) {
+      console.error(e);
+      return [];
+    }    
+  }
+  toJson(links: AudioGraphLink[] | AudioGraphLink) {
+    if (Array.isArray(links)) {
+      const jsonLinks: any[] = [];
+      links.forEach((link) => jsonLinks.push({
+        id: link.id,
+        from: link.from,
+        to: link.to,
+        fromParameter: link.fromParameter,
+        toParameter: link.toParameter
+      }));
+      return jsonLinks;
+    } else {
+      return {
+        id: links.id,
+        from: links.from,
+        to: links.to,
+        fromParameter: links.fromParameter,
+        toParameter: links.toParameter
+      };
+    }
+  }
+
+  constructor(graph: AudioGraph) {
+    this.graph = graph;
+  }
+}
+
 export class AudioGraph extends AudioGraphNode {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Graph;
   reconstruct = () => (this.nodes.forEach((node) => node.reconstruct()));
 
+  public set graph(graph: AudioGraph) {
+    this._graph = graph;
+
+    if (this.nodes.length > 0) {
+      this.nodes.forEach((node) => node.graph = graph);
+    }
+  }
+
+  public set context(context: AudioContext) {
+    this._context = context;
+
+    if (this.nodes.length > 0) {
+      this.nodes.forEach((node) => node.context = context);
+    }
+  }
+
   start() {
-    if (this.audioContext.state !== "running" && !this.playing) {
-      this.audioContext.resume();
+    if (this.context?.state !== "running" && !this.playing) {
+      this.context?.resume();
     }
     this.nodes.forEach((node) => node.start());
 
@@ -33,8 +124,8 @@ export class AudioGraph extends AudioGraphNode {
     this.onPlayback.notify();
   }
   stop() {
-    if (this.audioContext.state === "running" && this.playing) {
-      this.audioContext.suspend();
+    if (this.context?.state === "running" && this.playing) {
+      this.context.suspend();
     }
     this.nodes.forEach((node) => node.stop());
 
@@ -42,39 +133,25 @@ export class AudioGraph extends AudioGraphNode {
 
     this.onPlayback.notify();
   }
-  public audioContext: AudioContext;
   public readonly onPlayback = new Subscribable<boolean>(() => this.playing);
   public readonly onNodes = new Subscribable<AudioGraphNode[]>(() => this.nodes);
   public readonly onLinks = new Subscribable<AudioGraphLink[]>(() => this.links);
-  public readonly nodes: AudioGraphNode[];
-  public readonly links: AudioGraphLink[];
-  addAudioNode: AddAudioNode = (type) => {
-    let newNode;
 
-    switch (type) {
-      case AudioGraphNodes.Oscillator:
-        newNode = new AudioGraphNodeOscillator(this.audioContext, this);
-        break;
-      case AudioGraphNodes.Gain:
-        newNode = new AudioGraphNodeGain(this.audioContext, this);
-        break;
-      case AudioGraphNodes.Output:
-        newNode = new AudioGraphNodeOutput(this.audioContext, this) as any;
-        break;
-      case AudioGraphNodes.DynamicsCompressor:
-        newNode = new AudioGraphNodeDynamicsCompressor(this.audioContext, this);
-        break;
-      case AudioGraphNodes.Graph:
-        newNode = new AudioGraph(this.audioContext, this);
-        break;
-      default:
-        throw `Could not add audio graph node, type unknown: ${type}`;
-    }
+  @JsonProperty({ customConverter: () => AudioGraphNodesConverter }) public readonly nodes: AudioGraphNode[] = [];
+
+  @JsonProperty({ customConverter: () => AudioGraphLinksConverter }) public readonly links: AudioGraphLink[] = [];
+
+
+  addAudioNode: AddAudioNode = (type) => {
+    const newNode = createAudioGraphNodeOfType(type);
+    newNode.graph = this;
 
     if (this.playing) newNode.start();
 
     this.nodes.push(newNode);
+
     this.onNodes.notify();
+
     return newNode.id;
   };
 
@@ -94,7 +171,7 @@ export class AudioGraph extends AudioGraphNode {
       // Also remove links when removing a node
       for (let j = this.links.length - 1; j > -1; j--) {
         const link = this.links[j];
-        if (id === link.from.id || id === link.to.id) {
+        if (id === link.from || id === link.to) {
           linksRemoved = true;
           this.links.splice(j, 1);
         }
@@ -108,6 +185,10 @@ export class AudioGraph extends AudioGraphNode {
 
     return false;
   };
+
+  removeAllAudioNodes() {
+    this.nodes.forEach((node) => this.removeAudioNode(node.id));
+  }
 
   linkNodes: LinkNodes = (fromId, toId, fromParameter, toParameter) => {
     let fromNode = null;
@@ -132,8 +213,8 @@ export class AudioGraph extends AudioGraphNode {
       if (fromNode && toNode) {
         const newLink: AudioGraphLink = {
           id: uniqueId(),
-          from: fromNode,
-          to: toNode,
+          from: fromNode.id,
+          to: toNode.id,
         }
 
         if (fromParameter) newLink.fromParameter = fromParameter;
@@ -147,6 +228,7 @@ export class AudioGraph extends AudioGraphNode {
         }
 
         this.onLinks.notify();
+
         return true;
       }
     }
@@ -157,7 +239,7 @@ export class AudioGraph extends AudioGraphNode {
   findLinkIndex: FindLink = (fromId, toId, fromParameter, toParameter) => {
     const index = this.links.findIndex(
       (link) => {
-        let found = link.from.id === fromId && link.to.id === toId;
+        let found = link.from === fromId && link.to === toId;
 
         if (found) {
           if (fromParameter && toParameter) {
@@ -168,7 +250,7 @@ export class AudioGraph extends AudioGraphNode {
             found = link.toParameter === toParameter;
           }
         }
-        
+
         return found
       }
     );
@@ -199,21 +281,12 @@ export class AudioGraph extends AudioGraphNode {
     return success;
   };
 
-  constructor(context?: AudioContext, graph?: AudioGraph, loadSerialized?: any) {
-    let audioContext: AudioContext;
-      // Allow to supply a custom audio context
-      if (context) audioContext = context;
-      else {
-        if (!globalAudioContext)
-          // Create a global audio context if none exists
-          globalAudioContext = new AudioContext();
+  unlinkAllNodes: () => void = () => {
+    this.links.forEach((link) => this.unlinkNodes(link.from, link.to, link.fromParameter, link.toParameter));
+  }
 
-          audioContext = globalAudioContext;
-      }
-    super(audioContext, graph);
-
-    this.nodes = [];
-    this.links = [];
-    this.audioContext = audioContext;
+  constructor() {
+    super();
+    this.reconstruct();
   }
 }

@@ -32,7 +32,6 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children })
     const [graph] = useState(new AudioGraph());
     const [overlayComponent, setOverlayComponent] = useState<ReactNode | null>(null)
     const [activeType, setActiveType] = useState<string | null>(null);
-    const [subGraph, setSubGraph] = useState<AudioGraph | null>(null);
     useDndMonitor({
         onDragStart(event) { setDragSuccess(false); setActiveType(String(event.active.data.current?.type)) },
         onDragEnd(event) {
@@ -60,7 +59,7 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children })
     }, [])
 
     return (
-        <ComposerContext.Provider value={{ graph: graph, graphs: subGraph ? [subGraph] : [], onLinks: graph.onLinks, onNodes: graph.onNodes, onPlayback: graph.onPlayback }}>
+        <ComposerContext.Provider value={{ graph: graph, graphs: [graph], onLinks: graph.onLinks, onNodes: graph.onNodes, onPlayback: graph.onPlayback }}>
             {children}
             {!dragSuccess && <DragOverlay>
                 {overlayComponent && <div className="opacity-50">{overlayComponent}</div>}
