@@ -131,14 +131,15 @@ export abstract class AudioGraphNode<
       const link = linkedTo[i];
 
       const toNode = this.graph?.getAudioNode(link.to);
-      if (isAnyAudioNode(toNode) && isAnyAudioNode(this.node) && (link.toParameter ? link.toParameter in toNode : true)) {
+
+      if (isAnyAudioNode(toNode?.node) && isAnyAudioNode(this.node) && (link.toParameter ? link.toParameter in toNode : true)) {
         try {
           if (link.toParameter) {
             const nodeAsRecord = toNode as Record<string, any>;
             this.node.connect(nodeAsRecord[link.toParameter] as IAudioParam);
           }
           else
-            this.node.connect(toNode);
+            this.node.connect(toNode.node);
         } catch (error) {
           console.error(error);
         }
