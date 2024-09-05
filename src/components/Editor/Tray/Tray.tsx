@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react";
-import { AudioGraphNodes } from "../../core/AudioGraph";
 import TrayItem from "./TrayItem";
-import { useComposer } from "../Composer";
+import { AudioGraphNodes } from "../../../core/AudioGraph/types";
+import { useComposer } from "../../Composer";
 
 interface TrayProps {
 }

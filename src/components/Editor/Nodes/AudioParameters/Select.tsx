@@ -1,7 +1,7 @@
 import React from "react";
-import { AudioGraphNode } from "../../../../core/AudioGraph/AudioGraphNode";
 import { useAudioParameter } from "../../../../hooks/useAudioParameter";
 import { AudioParameterWrapper } from "../AudioParameterWrapper";
+import { AudioGraphNode } from "../../../../core/AudioGraph";
 
 interface AudioRangeProps<T extends AudioGraphNode> {
   audioNode: T | undefined;

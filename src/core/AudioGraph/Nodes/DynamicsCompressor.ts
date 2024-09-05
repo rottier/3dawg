@@ -1,6 +1,6 @@
 import { TContext, IDynamicsCompressorOptions, DynamicsCompressorNode } from "standardized-audio-context";
-import { AudioGraphNodes } from "..";
-import { AudioGraphNode } from "../AudioGraphNode";
+import { AudioGraphNode } from "./Node";
+import { AudioGraphNodes } from "../types";
 
 const defaults = {
   threshold: -24,

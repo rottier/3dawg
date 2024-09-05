@@ -1,6 +1,6 @@
 import { TContext, IGainOptions, GainNode } from "standardized-audio-context";
-import { AudioGraphNodes } from "..";
-import { AudioGraphNode } from "../AudioGraphNode";
+import { AudioGraphNode } from "./Node";
+import { AudioGraphNodes } from "../types";
 
 const defaults = {
   gain: 0.5,

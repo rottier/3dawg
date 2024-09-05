@@ -1,6 +1,5 @@
-import { AudioGraph, AudioGraphNodes } from ".";
-import { AudioGraphNode } from "./AudioGraphNode";
-import { AudioGraphNodeDynamicsCompressor, AudioGraphNodeGain, AudioGraphNodeOscillator, AudioGraphNodeOutput } from "./Nodes";
+import { AudioGraph, AudioGraphNode, AudioGraphNodeDynamicsCompressor, AudioGraphNodeGain, AudioGraphNodeOscillator, AudioGraphNodeOutput } from "./Nodes";
+import { AudioGraphNodes } from "./types";
 
 export const getAudioGraphNodeType = (type: AudioGraphNodes): typeof AudioGraphNode<any, any> => {
     switch (type) {

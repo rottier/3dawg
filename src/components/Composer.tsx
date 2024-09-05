@@ -1,8 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { AudioGraph, AudioGraphLink, AudioGraphNodes } from '../core/AudioGraph';
-import { DndContext, DragOverlay, useDndMonitor } from '@dnd-kit/core';
-import { NodeTypes } from './Editor/Nodes';
-import { AudioGraphNode } from '../core/AudioGraph/AudioGraphNode';
+import { AudioGraph, AudioGraphNode } from '../core/AudioGraph/Nodes';
+import { AudioGraphLink, IAudioGraphNode } from '../core/AudioGraph/interfaces';
 
 type ComposerProviderType = {
     onLinks: typeof AudioGraph.prototype.onLinks;
@@ -28,42 +26,11 @@ const ComposerContext = createContext<ComposerProviderType | undefined>(undefine
 
 
 const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children }) => {
-    const [dragSuccess, setDragSuccess] = useState(false);
-    const [graph] = useState(new AudioGraph());
-    const [overlayComponent, setOverlayComponent] = useState<ReactNode | null>(null)
-    const [activeType, setActiveType] = useState<string | null>(null);
-    useDndMonitor({
-        onDragStart(event) { setDragSuccess(false); setActiveType(String(event.active.data.current?.type)) },
-        onDragEnd(event) {
-            setActiveType(null);
-            if (event.over?.id === 'graph') {
-                setDragSuccess(true);
-            }
-        }
-    });
-
-    useEffect(() => {
-        if (activeType && Object.keys(NodeTypes).includes(activeType)) {
-            const component = NodeTypes[activeType as keyof typeof NodeTypes];
-            setOverlayComponent(React.createElement(component));
-        } else {
-            setOverlayComponent(null);
-        }
-    }, [activeType]);
-
-    useEffect(() => {
-
-        return () => {
-            graph.stop();
-        }
-    }, [])
+    const [graph] = useState(new AudioGraph());;
 
     return (
         <ComposerContext.Provider value={{ graph: graph, graphs: [graph], onLinks: graph.onLinks, onNodes: graph.onNodes, onPlayback: graph.onPlayback }}>
             {children}
-            {!dragSuccess && <DragOverlay>
-                {overlayComponent && <div className="opacity-50">{overlayComponent}</div>}
-            </DragOverlay>}
         </ComposerContext.Provider>
 
     );
@@ -72,12 +39,9 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({ children })
 const ComposerProvider: React.FC<ComposerProviderProps> = ({ children }) => {
 
     return (
-        <DndContext>
             <ComposerProviderInternal>
                 {children}
             </ComposerProviderInternal>
-        </DndContext>
-
     );
 };
 const useComposer = (): ComposerConsumerType => {
@@ -97,7 +61,7 @@ const useComposer = (): ComposerConsumerType => {
     }, [context.onLinks]);
 
     useEffect(() => {
-        const cb = (nodes: AudioGraphNode[]) => setNodes([...nodes]);
+        const cb = (nodes: IAudioGraphNode[]) => setNodes([...nodes] as AudioGraphNode[]);
         context.onNodes.subscribe(cb);
         return () => context.onNodes.unsubscribe(cb);
     }, [context.onNodes]);

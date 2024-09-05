@@ -1,10 +1,10 @@
 import { uniqueId } from "lodash";
+import { Subscribable } from "../../../utils/Subscribable";
 import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from "standardized-audio-context";
-import { AudioGraphLink, AudioGraphNodes } from ".";
-import { AudioGraph } from "./Nodes/AudioGraph";
-import { Subscribable } from "../../utils/Subscribable";
+import { AudioGraphNodes } from "../types";
+import { IAudioGraph, IAudioGraphNode } from "../interfaces";
 import { JsonProperty} from "@paddls/ts-serializer";
-import { globalAudioContext } from "./AudioGraphContext";
+import { globalAudioContext } from "../AudioGraphContext";
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -19,7 +19,7 @@ interface IAudioParamNode {
 export abstract class AudioGraphNode<
   Node extends IAudioNode<TContext> = IAudioNode<TContext>,
   Parameters extends Record<string, any> = Record<string, any>
-> {
+> implements IAudioGraphNode {
   /**
    * The audio context used by the audio graph.
    */
@@ -49,7 +49,7 @@ export abstract class AudioGraphNode<
    * Retrieves an array of AudioGraphLink objects that are linked to this AudioGraphNode.
    * @returns {AudioGraphLink[]} The array of relevant links.
    */
-  public readonly linksFrom: () => AudioGraphLink[] = () =>
+  public readonly linksFrom = () =>
     this.graph?.links
       .filter((link) => link.to === this.id) || [];
   /**
@@ -57,45 +57,43 @@ export abstract class AudioGraphNode<
    *
    * @returns {AudioGraphLink[]} The array of relevant links.
    */
-  public readonly linksTo: () => AudioGraphLink[] = (): AudioGraphLink[] =>
+  public readonly linksTo = () =>
     this.graph?.links
       .filter((link) => link.from === this.id) || [];
   protected _parametersDefault: Partial<Parameters> = {};
   protected _parameters: Partial<Parameters> = {};
-  public readonly onParameterChange = new Subscribable<Partial<Parameters>>(() => this._parameters);
+  public readonly onParameterChange = new Subscribable<Partial<Record<string, any>>>(() => this._parameters);
 
   @JsonProperty() public get parameters() {
     return this._parameters;
   }
   public set parameters(parameters: Partial<Parameters>) {
-    let changed = false;
-
     Object.entries(parameters).forEach(([key, value]) => {
       if (key in this._parameters) {
-        if (this._parameters[key as keyof Parameters] === value)
-          return
-
-        this._parameters[key as keyof Parameters] = value;
-        changed = true;
-
-        if (this.node) {
-          const nodeAsRecord = this.node as Record<string, any>;
-
-          if (this.playing &&
-            key in this.node &&
-            typeof nodeAsRecord[key]?.setValueAtTime === "function" &&
-            typeof value === "number"
-          ) {
-            const setValueAtTime = (this.node as any)[key]
-              .setValueAtTime as IAudioParamNode["setValueAtTime"];
-
-            if (setValueAtTime) {
-              setValueAtTime(Number(value), this.context?.currentTime || 0);
-            }
-          } else {
-            if (this.graph?.playing) {
-              this.graph.stop();
-              this.graph.start();
+        let changed = false;
+        if (this._parameters[key as keyof Parameters] !== value) {
+          this._parameters[key as keyof Parameters] = value;
+          changed = true;
+  
+          if (this.node) {
+            const nodeAsRecord = this.node as Record<string, any>;
+  
+            if (this.playing &&
+              key in this.node &&
+              typeof nodeAsRecord[key]?.setValueAtTime === "function" &&
+              typeof value === "number"
+            ) {
+              const setValueAtTime = (this.node as any)[key]
+                .setValueAtTime as IAudioParamNode["setValueAtTime"];
+  
+              if (setValueAtTime) {
+                setValueAtTime(Number(value), this.context?.currentTime || 0);
+              }
+            } else {
+              if (this.graph?.playing) {
+                this.graph.stop();
+                this.graph.start();
+              }
             }
           }
         }
@@ -111,11 +109,11 @@ export abstract class AudioGraphNode<
     return this.playing;
   }
 
-  protected _graph: AudioGraph | undefined;
-  public get graph(): AudioGraph | undefined {
+  protected _graph: IAudioGraph | undefined;
+  public get graph(): IAudioGraph | undefined {
     return this._graph;
   }
-  public set graph(graph: AudioGraph) {
+  public set graph(graph: IAudioGraph) {
     this._graph = graph;
 
     if (graph.context)

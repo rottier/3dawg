@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { AudioGraphNodeOutput } from '../../../../core/AudioGraph/Nodes';
-import { AudioNodeProps } from '../.';
 import { AudioNodeWrapper } from '../AudioNodeWrapper';
+import { AudioNodeProps } from '../types';
  
 export const Output: FunctionComponent = ({}: AudioNodeProps<AudioGraphNodeOutput>) => {
   return (

@@ -1,8 +1,8 @@
 import { FunctionComponent, ReactNode, useEffect, useState } from "react";
 import ConditionalHandle from "../Handles/ConditionalHandle";
 import { Position } from "@xyflow/react";
-import { AudioGraphNode } from "../../../core/AudioGraph/AudioGraphNode";
 import { useComposer } from "../../Composer";
+import { AudioGraphNode } from "../../../core/AudioGraph";
 
 interface AudioParameterWrapperProps {
     children: ReactNode;
@@ -21,7 +21,7 @@ export const AudioParameterWrapper: FunctionComponent<AudioParameterWrapperProps
     const [connected, setConnected] = useState(false);
 
     useEffect(() => {
-        setConnected(links.findIndex(link => node?.id === link.to.id && link.toParameter === parameterId) > -1);
+        setConnected(links.findIndex(link => node?.id === link.to && link.toParameter === parameterId) > -1);
     }, [links]);
 
     return (

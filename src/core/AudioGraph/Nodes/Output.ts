@@ -1,6 +1,6 @@
-import { TContext, IAudioDestinationNode, AudioContext } from "standardized-audio-context";
-import { AudioGraphNodes } from "..";
-import { AudioGraphNode } from "../AudioGraphNode";
+import { TContext, IAudioDestinationNode } from "standardized-audio-context";
+import { AudioGraphNode } from "./Node";
+import { AudioGraphNodes } from "../types";
 
 export class AudioGraphNodeOutput extends AudioGraphNode<
   IAudioDestinationNode<TContext>
