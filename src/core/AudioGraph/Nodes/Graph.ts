@@ -1,4 +1,4 @@
-import { uniqueId } from "lodash";
+import { v4 as uuid } from 'uuid';
 import { Subscribable } from "../../../utils/Subscribable";
 import { AudioContext } from "standardized-audio-context";
 import { AudioGraphNodes } from "../types";
@@ -47,7 +47,7 @@ class AudioGraphLinksConverter implements Converter<AudioGraphLink[], any> {
       const newLinks: AudioGraphLink[] = [];
       jsonObj.forEach((link: any) => {
         const newLink = {
-          id: uniqueId(),
+          id: uuid(),
           from: link.from,
           to: link.to,
           fromParameter: link.fromParameter,
@@ -89,18 +89,12 @@ class AudioGraphLinksConverter implements Converter<AudioGraphLink[], any> {
   }
 }
 
-type AddAudioNode = (type: AudioGraphNodes) => string;
-type RemoveAudioNode = (id: string) => boolean;
-type LinkNodes = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => boolean;
-type UnlinkNodes = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => boolean;
-type FindLink = (fromId: string, toId: string, fromParameter?: string, toParameter?: string) => number;
-
 export class AudioGraph extends AudioGraphNode implements IAudioGraph {
     public readonly type: AudioGraphNodes = AudioGraphNodes.Graph;
     reconstruct = () => (this.nodes.forEach((node) => node.reconstruct()));
   
     
-    public set graph(graph: AudioGraph) {
+    public set graph(graph: IAudioGraph) {
       this._graph = graph;
 
       if (this.nodes.length > 0) {
@@ -141,36 +135,66 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
     public readonly onLinks = new Subscribable<AudioGraphLink[]>(() => this.links);
     @JsonProperty({ customConverter: () => AudioGraphNodesConverter }) public readonly nodes: AudioGraphNode[] = [];
     @JsonProperty({ customConverter: () => AudioGraphLinksConverter }) public readonly links: AudioGraphLink[] = [];
-    addAudioNode: AddAudioNode = (type) => {
-      const newNode = createAudioGraphNodeOfType(type);
-      newNode.graph = this;
+
+    addAudioNode(type: AudioGraphNodes): IAudioGraphNode;
+    addAudioNode(node: IAudioGraphNode): boolean;
+    addAudioNode(arg: AudioGraphNodes | IAudioGraphNode): IAudioGraphNode | boolean {
+      if (arg instanceof AudioGraphNode) {
+        const node = arg;
+        node.graph = this;
+    
+        if (this.playing) node.start();
+    
+        this.nodes.push(node);
+    
+        this.onNodes.notify();
+    
+        return true;
+      } else {
+        const type = arg;
+        const newNode = createAudioGraphNodeOfType(type as AudioGraphNodes);
+        newNode.graph = this;
+    
+        if (this.playing) newNode.start();
+    
+        this.nodes.push(newNode);
+    
+        this.onNodes.notify();
+    
+        return newNode;
+      }
+    }
+
   
-      if (this.playing) newNode.start();
-  
-      this.nodes.push(newNode);
-  
-      this.onNodes.notify();
-  
-      return newNode.id;
-    };
-  
-    getAudioNode: (id: string) => AudioGraphNode | undefined = (id) => {
+    findAudioNode: (id: string) => IAudioGraphNode | undefined = (id) => {
       return this.nodes.find((node) => node.id === id);
     };
   
-    removeAudioNode: RemoveAudioNode = (id) => {
-      const i = this.nodes.findIndex((node) => node.id === id);
+    removeAudioNode(node: IAudioGraphNode): boolean;
+    removeAudioNode(id: string): boolean;
+    removeAudioNode(arg: IAudioGraphNode | string) {
+      
+      let nodeToRemove: IAudioGraphNode | undefined;
+      let i = -1;
+
+      if (typeof arg === "string") {
+        i = this.nodes.findIndex((n) => n.id === arg);
+      } else {
+        const providedNode = arg as IAudioGraphNode;
+        i = this.nodes.findIndex((n) => n.id === providedNode.id);
+      }
+
       if (i !== -1) {
-        const foundNode = this.nodes.splice(i, 1)[0];
-  
-        if (this.playing) foundNode.stop();
+        nodeToRemove = this.nodes.splice(i, 1)[0];
+
+        if (this.playing) nodeToRemove.stop();
   
         let linksRemoved = false;
   
         // Also remove links when removing a node
         for (let j = this.links.length - 1; j > -1; j--) {
           const link = this.links[j];
-          if (id === link.from || id === link.to) {
+          if (nodeToRemove.id === link.from || nodeToRemove.id === link.to) {
             linksRemoved = true;
             this.links.splice(j, 1);
           }
@@ -183,13 +207,13 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
       }
   
       return false;
-    };
+    }
 
     removeAllAudioNodes() {
       this.nodes.forEach((node) => this.removeAudioNode(node.id));
     }
   
-    linkNodes: LinkNodes = (fromId, toId, fromParameter, toParameter) => {
+    linkNodes(fromId: string, toId: string, fromParameter?: string, toParameter?: string) {
       let fromNode = null;
       let toNode = null;
   
@@ -211,7 +235,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
   
         if (fromNode && toNode) {
           const newLink = {
-            id: uniqueId(),
+            id: uuid(),
             from: fromNode.id,
             to: toNode.id,
           } as AudioGraphLink;
@@ -234,7 +258,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
       return false;
     };
   
-    findLinkIndex: FindLink = (fromId, toId, fromParameter, toParameter) => {
+    findLinkIndex(fromId: string, toId: string, fromParameter?: string, toParameter?: string) {
       const index = this.links.findIndex(
         (link) => {
           let found = link.from === fromId && link.to === toId;
@@ -257,7 +281,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
     }
   
   
-    unlinkNodes: UnlinkNodes = (fromId, toId, fromParameter, toParameter) => {
+    unlinkNodes(fromId: string, toId: string, fromParameter?: string, toParameter?: string) {
       let linkIndex = this.findLinkIndex(fromId, toId, fromParameter, toParameter);
       let success = false;
   

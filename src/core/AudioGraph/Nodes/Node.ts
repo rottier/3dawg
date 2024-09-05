@@ -1,4 +1,4 @@
-import { uniqueId } from "lodash";
+import { v4 as uuid } from 'uuid';
 import { Subscribable } from "../../../utils/Subscribable";
 import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from "standardized-audio-context";
 import { AudioGraphNodes } from "../types";
@@ -32,7 +32,7 @@ export abstract class AudioGraphNode<
     this.reconstruct();
   }
 
-  @JsonProperty() public readonly id: string = uniqueId();
+  @JsonProperty() public readonly id: string = uuid();
 
   public get node() {
     return this._node;
@@ -130,7 +130,7 @@ export abstract class AudioGraphNode<
     for (let i = 0; i < linkedTo.length; i++) {
       const link = linkedTo[i];
 
-      const toNode = this.graph?.getAudioNode(link.to);
+      const toNode = this.graph?.findAudioNode(link.to);
 
       if (isAnyAudioNode(toNode?.node) && isAnyAudioNode(this.node) && (link.toParameter ? link.toParameter in toNode : true)) {
         try {

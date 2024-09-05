@@ -38,9 +38,11 @@ export interface IAudioGraph extends IAudioGraphNode {
   readonly nodes: IAudioGraphNode[];
   readonly links: AudioGraphLink[];
 
-  addAudioNode(type: AudioGraphNodes): string;
-  getAudioNode(id: string): IAudioGraphNode | undefined;
+  addAudioNode(type: AudioGraphNodes): IAudioGraphNode;
+  addAudioNode(node: IAudioGraphNode): boolean;
+  findAudioNode(id: string): IAudioGraphNode | undefined;
   removeAudioNode(id: string): boolean;
+  removeAudioNode(node: IAudioGraphNode): boolean;
   linkNodes(fromId: string, toId: string, fromParameter?: string, toParameter?: string): boolean;
   unlinkNodes(fromId: string, toId: string, fromParameter?: string, toParameter?: string): boolean;
   findLinkIndex(fromId: string, toId: string, fromParameter?: string, toParameter?: string): number;

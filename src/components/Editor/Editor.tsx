@@ -42,14 +42,13 @@ function NodeGraph() {
         const data = event.active.data.current as TrayItemData;
         const nodeType = data.type;
 
-        const nodeId = graph.addAudioNode(nodeType);
-        const node = graph.getAudioNode(nodeId);
+        const node = graph.addAudioNode(nodeType);
 
         if (node) {
           const newNodes = [
             ...nodes,
             {
-              id: nodeId,
+              id: node.id,
               type: nodeType,
               position: reactFlow.screenToFlowPosition({
                 x: event.active.rect?.current?.translated?.left || 0,
