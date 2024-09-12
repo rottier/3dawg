@@ -11,7 +11,7 @@ export const Graph: FunctionComponent = (props: AudioNodeProps<AudioGraph>) => {
       header={props.data?.audioNode?.label ?? "Graph"}
       to={true}
       onDoubleClickHeader={() =>
-        props.data?.audioNode ? composer.setActiveGraph(props.data.audioNode.id) : undefined
+        props.data?.audioNode ? composer.setActiveGraph(props.data.audioNode.graphId) : undefined
       }
     >
       <></>
