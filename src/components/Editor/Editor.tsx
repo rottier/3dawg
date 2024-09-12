@@ -3,6 +3,7 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useState,
 } from "react";
 import {
@@ -30,11 +31,16 @@ import Tray from "./Tray/Tray";
 import { NodeTypes } from "./Nodes/helpers";
 import { AudioGraphFlowNode } from "./types";
 import { TrayItemData } from "./Tray";
+import {
+  AudioGraphLink,
+  IAudioGraphNode,
+} from "../../core/AudioGraph/interfaces";
+import { AudioGraphNodes } from "../../core/AudioGraph/types";
 
 const proOptions = { hideAttribution: true };
 
 function NodeGraph() {
-  const { graph, links, playing } = useComposer();
+  const { activeGraph, playing, composer } = useComposer();
   const reactFlow = useReactFlow();
   useDndMonitor({
     onDragEnd(event) {
@@ -42,29 +48,26 @@ function NodeGraph() {
         const data = event.active.data.current as TrayItemData;
         const nodeType = data.type;
 
-        const node = graph.addAudioNode(nodeType);
+        if (activeGraph) {
+          let newAudioNode: IAudioGraphNode;
+          if (nodeType === AudioGraphNodes.Graph) {
+            const referenceGraph = composer.findGraph(data.id);
+            if (!referenceGraph)
+              throw new Error(`Cannot add graph with id ${data.id} as it does not exist within the composer.`);
 
-        if (node) {
-          const newNodes = [
-            ...nodes,
-            {
-              id: node.id,
-              type: nodeType,
-              position: reactFlow.screenToFlowPosition({
-                x: event.active.rect?.current?.translated?.left || 0,
-                y: event.active.rect?.current?.translated?.top || 0,
-              }),
-              data: {
-                audioNode: node,
-              },
-            },
-          ];
-          setNodes(newNodes);
+            newAudioNode = activeGraph.addAudioNode(referenceGraph);
+          } else {
+            newAudioNode = activeGraph.addAudioNode(nodeType);
+          }
+
+          newAudioNode.position = reactFlow.screenToFlowPosition({
+            x: event.active.rect?.current?.translated?.left || 0,
+            y: event.active.rect?.current?.translated?.top || 0,
+          });
         }
       }
     },
   });
-  const [rerender, setRerender] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState<AudioGraphFlowNode>(
     []
   );
@@ -79,23 +82,72 @@ function NodeGraph() {
     id: "graph",
   });
 
+  useLayoutEffect(() => activeGraph?.onNodes.notify(), [nodes.length]);
+  useLayoutEffect(() => activeGraph?.onLinks.notify(), [edges.length]);
+
+  useEffect(() => {
+    if (activeGraph) {
+      const lastGraph = activeGraph;
+      const subscriptionNode = (graphNodes: IAudioGraphNode[]) => {
+        const newNodes: AudioGraphFlowNode[] = [];
+        graphNodes.forEach((graphNode) => {
+          newNodes.push({
+            id: graphNode.id,
+            type: graphNode.type,
+            position: graphNode.position,
+            data: {
+              audioNode: graphNode,
+            },
+          });
+        });
+        setNodes(newNodes);
+      };
+      lastGraph?.onNodes.subscribe(subscriptionNode);
+
+      const subscriptionLinks = (links: AudioGraphLink[]) => {
+        const newEdges: typeof edges = [];
+        links.forEach((link) =>
+          newEdges.push({
+            id: link.id,
+            source: link.from,
+            target: link.to,
+            sourceHandle: link.fromParameter,
+            targetHandle: link.toParameter,
+          })
+        );
+        setEdges(newEdges);
+      };
+      lastGraph?.onLinks.subscribe(subscriptionLinks);
+
+      reactFlow.fitView();
+
+      return () => {
+        lastGraph?.onNodes.unsubscribe(subscriptionNode);
+        lastGraph?.onLinks.unsubscribe(subscriptionLinks);
+      };
+    } else {
+      setNodes([]);
+      setEdges([]);
+    }
+  }, [activeGraph]);
+
   const onConnect = useCallback<OnConnect>(
     (params) => {
-      graph.linkNodes(
+      activeGraph?.linkNodes(
         params.source,
         params.target,
         params.sourceHandle || undefined,
         params.targetHandle || undefined
       );
     },
-    [graph]
+    [activeGraph]
   );
 
   const onDelete = useCallback<OnDelete>(
     (params) => {
-      params.nodes.forEach((node) => graph.removeAudioNode(node.id));
+      params.nodes.forEach((node) => activeGraph?.removeAudioNode(node.id));
       params.edges.forEach((edge) =>
-        graph.unlinkNodes(
+        activeGraph?.unlinkNodes(
           edge.source,
           edge.target,
           edge.sourceHandle || undefined,
@@ -103,16 +155,8 @@ function NodeGraph() {
         )
       );
     },
-    [graph]
+    [activeGraph]
   );
-
-  useEffect(() => {
-    const newEdges: typeof edges = [];
-    links.forEach((link) =>
-      newEdges.push({ id: link.id, source: link.from, target: link.to, sourceHandle: link.fromParameter, targetHandle: link.toParameter })
-    );
-    setEdges(newEdges);
-  }, [links]);
 
   return (
     <div className={"w-full h-full flex flex-col"}>
@@ -126,15 +170,18 @@ function NodeGraph() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onDelete={onDelete}
+          onNodeDrag={(_, node) => {
+            node.data.audioNode.position = node.position;
+          }}
           proOptions={proOptions}
           colorMode="light"
           minZoom={0.1}
           onEdgeClick={(_, edge) =>
-            graph.unlinkNodes(
+            activeGraph?.unlinkNodes(
               edge.source,
               edge.target,
-              edge.sourceHandle || undefined,
-              edge.targetHandle || undefined
+              edge.sourceHandle,
+              edge.targetHandle
             )
           }
         >
@@ -144,10 +191,7 @@ function NodeGraph() {
       <div className="flex flex-row gap-1 p-1">
         <button
           className="btn btn-wide btn-accent"
-          onClick={() => {
-            playing ? graph.stop() : graph.start();
-            setRerender(!rerender);
-          }}
+          onClick={() => (playing ? activeGraph?.stop() : activeGraph?.start())}
         >
           {playing ? "Stop" : "Play"}
         </button>
@@ -180,7 +224,9 @@ function NodeGraphWithTray() {
   useEffect(() => {
     if (activeType && Object.keys(NodeTypes).includes(activeType)) {
       const component = NodeTypes[activeType as keyof typeof NodeTypes];
-      setOverlayComponent(createElement(component, { id: "previewOverlay"} as React.Attributes));
+      setOverlayComponent(
+        createElement(component, { id: "previewOverlay" } as React.Attributes)
+      );
     } else {
       setOverlayComponent(null);
     }

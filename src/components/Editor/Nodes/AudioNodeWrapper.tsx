@@ -7,6 +7,7 @@ interface AudioNodeWrapperProps {
   children: ReactNode;
   from?: boolean;
   to?: boolean;
+  onDoubleClickHeader?: () => void;
 }
 
 export const AudioNodeWrapper: FunctionComponent<AudioNodeWrapperProps> = ({
@@ -14,11 +15,12 @@ export const AudioNodeWrapper: FunctionComponent<AudioNodeWrapperProps> = ({
   children,
   from = false,
   to = false,
+  onDoubleClickHeader
 }) => {
   return (
     <>
       <div className="bg-secondary w-fit h-fit rounded drop-shadow-xl">
-        <div className="w-full h-10 flex flex-col items-center justify-center px-4 bg-primary rounded-t">
+        <div className="w-full h-10 flex flex-col items-center justify-center px-4 bg-primary rounded-t" onDoubleClick={onDoubleClickHeader}>
           {from && <ConditionalHandle type="target" position={Position.Left} className="!top-5 !border-accent !bg-accent !p-1 hover:!p-2" />}
           <h2 className=" text-white font-mono h-fit">
             {header}

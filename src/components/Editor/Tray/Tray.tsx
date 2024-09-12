@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import TrayItem from "./TrayItem";
 import { AudioGraphNodes } from "../../../core/AudioGraph/types";
 import { useComposer } from "../../Composer";
@@ -9,6 +9,18 @@ interface TrayProps {}
 
 const Tray: FunctionComponent<TrayProps> = () => {
   const composer = useComposer();
+  const [graphs, setGraphs] = useState<AudioGraph[]>(composer.graphs);
+
+  useEffect(() => {
+    const subscription = (graphs: AudioGraph[]) => {
+      setGraphs([...graphs]);
+    };
+    composer.composer.onGraphsChange.subscribe(subscription);
+
+    return () => {
+      composer.composer.onGraphsChange.unsubscribe(subscription);
+    };
+  }, []);
 
   return (
     <ul className="menu w-full h-full bg-black bg-opacity-50">
@@ -28,19 +40,21 @@ const Tray: FunctionComponent<TrayProps> = () => {
         <details open>
           <summary>Graphs</summary>
           <ul>
-            {composer.graphs.map((node, index) => (
+            {graphs.map((graph, index) => (
               <TrayItem
                 key={index}
                 node={AudioGraphNodes.Graph}
-                id={node.id}
-                label={node.label}
+                id={graph.id}
+                label={graph.label}
+                active={graph === composer.activeGraph}
               />
             ))}
             <li>
               <a
-                className="opacity-50 hover:opacity-100"
+                className={`opacity-50 hover:opacity-100`}
                 onClick={() => {
-                  composer.graphs.push(new AudioGraph());
+                  const graph = composer.composer.createNewGraph();
+                  composer.setActiveGraph(graph.id);
                 }}
               >
                 <PlusIcon className="size-4 text-accent" />

@@ -7,12 +7,14 @@ interface TrayItemProps {
   node: AudioGraphNodes;
   id?: string;
   label?: string;
+  active?: boolean;
 }
 
 const TrayItem: React.FC<TrayItemProps> = ({
   node,
   id = node,
   label = node,
+  active = false
 }) => {
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: id,
@@ -24,8 +26,8 @@ const TrayItem: React.FC<TrayItemProps> = ({
   });
 
   return (
-    <li ref={setNodeRef} {...listeners} {...attributes}>
-      <a>{label}</a>
+    <li ref={!active ? setNodeRef : null} {...listeners} {...attributes}>
+      <a className={active ? 'font-bold' : 'font-normal'}>{label}</a>
     </li>
   );
 };

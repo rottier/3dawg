@@ -45,6 +45,9 @@ export abstract class AudioGraphNode<
   @JsonProperty() public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
 
   @JsonProperty() public label: string = AudioGraphNodes[this.type];
+
+  @JsonProperty() public position = { x: 0, y: 0 };
+
   /**
    * Retrieves an array of AudioGraphLink objects that are linked to this AudioGraphNode.
    * @returns {AudioGraphLink[]} The array of relevant links.

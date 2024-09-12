@@ -14,6 +14,8 @@ export interface IAudioGraphNode<
   playing: boolean;
   readonly isPlaying: boolean;
 
+  position: { x: number; y: number };
+
   readonly linksFrom: () => AudioGraphLink[];
   readonly linksTo: () => AudioGraphLink[];
   readonly onParameterChange: Subscribable<Partial<Record<string, any>>>;
@@ -38,6 +40,7 @@ export interface IAudioGraph extends IAudioGraphNode {
   readonly nodes: IAudioGraphNode[];
   readonly links: AudioGraphLink[];
 
+  instanceGraph(graph: IAudioGraph): IAudioGraph;
   addAudioNode(type: AudioGraphNodes): IAudioGraphNode;
   addAudioNode(node: IAudioGraphNode): boolean;
   findAudioNode(id: string): IAudioGraphNode | undefined;
