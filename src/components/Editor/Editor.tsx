@@ -39,7 +39,7 @@ import { AudioGraphNodes } from "../../core/AudioGraph/types";
 const proOptions = { hideAttribution: true };
 
 function NodeGraph() {
-  const { activeGraph, playing, composer } = useComposer();
+  const { activeGraph, playing, composer, setActiveGraph } = useComposer();
   const reactFlow = useReactFlow();
   useDndMonitor({
     onDragEnd(event) {
@@ -187,22 +187,30 @@ function NodeGraph() {
             <Controls />
           </ReactFlow>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/50 text-3xl text-center font-light select-none">
-            Select or add a graph...
+          <div className="w-full h-full flex flex-col gap-2 items-center justify-center bg-black/50 select-none">
+            <p className="text-white/50 text-3xl text-center font-light">
+              Select a graph...
+            </p>
+            <p className="text-white/50 text-2xl text-center font-light">
+              ...or click{" "}
+              <a className="cursor-pointer" onClick={() => setActiveGraph(composer.createNewGraph().id)}>
+                here
+              </a>{" "}
+              to add a new graph
+            </p>
           </div>
         )}
       </div>
       {activeGraph && (
         <div className="flex flex-row gap-1 p-1">
-        <button
-          className="btn btn-wide btn-accent"
-          onClick={() => (playing ? activeGraph.stop() : activeGraph.start())}
-        >
-          {playing ? "Stop" : "Play"}
-        </button>
-      </div>
+          <button
+            className="btn btn-wide btn-accent"
+            onClick={() => (playing ? activeGraph.stop() : activeGraph.start())}
+          >
+            {playing ? "Stop" : "Play"}
+          </button>
+        </div>
       )}
-      
     </div>
   );
 }
