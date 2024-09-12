@@ -187,7 +187,7 @@ function NodeGraph() {
             <Controls />
           </ReactFlow>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/50 text-3xl text-center font-light">
+          <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/50 text-3xl text-center font-light select-none">
             Select or add a graph...
           </div>
         )}
