@@ -4,4 +4,5 @@ export type TrayItemData = {
     id: string;
     type: AudioGraphNodes;
     label: string;
+    position: { x: number; y: number };
 }

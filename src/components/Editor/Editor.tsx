@@ -1,8 +1,7 @@
-import React, {
+import {
   createElement,
   ReactNode,
   useCallback,
-  useEffect,
   useLayoutEffect,
   useState,
 } from "react";
@@ -53,17 +52,16 @@ function NodeGraph() {
           if (nodeType === AudioGraphNodes.Graph) {
             const referenceGraph = composer.findGraph(data.id);
             if (!referenceGraph)
-              throw new Error(`Cannot add graph with id ${data.id} as it does not exist within the composer.`);
+              throw new Error(
+                `Cannot add graph with id ${data.id} as it does not exist within the composer.`
+              );
 
             newAudioNode = activeGraph.addAudioNode(referenceGraph);
           } else {
             newAudioNode = activeGraph.addAudioNode(nodeType);
           }
 
-          newAudioNode.position = reactFlow.screenToFlowPosition({
-            x: event.active.rect?.current?.translated?.left || 0,
-            y: event.active.rect?.current?.translated?.top || 0,
-          });
+          newAudioNode.position = reactFlow.screenToFlowPosition(data.position);
         }
       }
     },
@@ -85,7 +83,7 @@ function NodeGraph() {
   useLayoutEffect(() => activeGraph?.onNodes.notify(), [nodes.length]);
   useLayoutEffect(() => activeGraph?.onLinks.notify(), [edges.length]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (activeGraph) {
       const lastGraph = activeGraph;
       const subscriptionNode = (graphNodes: IAudioGraphNode[]) => {
@@ -161,32 +159,38 @@ function NodeGraph() {
   return (
     <div className={"w-full h-full flex flex-col"}>
       <div ref={setNodeRef} className={`w-full h-full bg-black bg-opacity-60`}>
-        <ReactFlow
-          className="!text-secondary"
-          nodeTypes={NodeTypes}
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDelete={onDelete}
-          onNodeDrag={(_, node) => {
-            node.data.audioNode.position = node.position;
-          }}
-          proOptions={proOptions}
-          colorMode="light"
-          minZoom={0.1}
-          onEdgeClick={(_, edge) =>
-            activeGraph?.unlinkNodes(
-              edge.source,
-              edge.target,
-              edge.sourceHandle,
-              edge.targetHandle
-            )
-          }
-        >
-          <Controls />
-        </ReactFlow>
+        {activeGraph ? (
+          <ReactFlow
+            className="!text-secondary"
+            nodeTypes={NodeTypes}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDelete={onDelete}
+            onNodeDrag={(_, node) => {
+              node.data.audioNode.position = node.position;
+            }}
+            proOptions={proOptions}
+            colorMode="light"
+            minZoom={0.1}
+            onEdgeClick={(_, edge) =>
+              activeGraph?.unlinkNodes(
+                edge.source,
+                edge.target,
+                edge.sourceHandle,
+                edge.targetHandle
+              )
+            }
+          >
+            <Controls />
+          </ReactFlow>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-black/50 text-white/50 text-3xl text-center font-light">
+            Select or add a graph...
+          </div>
+        )}
       </div>
       <div className="flex flex-row gap-1 p-1">
         <button
@@ -221,7 +225,7 @@ function NodeGraphWithTray() {
     },
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (activeType && Object.keys(NodeTypes).includes(activeType)) {
       const component = NodeTypes[activeType as keyof typeof NodeTypes];
       setOverlayComponent(

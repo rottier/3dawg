@@ -10,6 +10,7 @@ interface TrayProps {}
 const Tray: FunctionComponent<TrayProps> = () => {
   const composer = useComposer();
   const [graphs, setGraphs] = useState<AudioGraph[]>(composer.graphs);
+  const [renamingGraph, setRenamingGraph] = useState<string | undefined>();
 
   useEffect(() => {
     const subscription = (graphs: AudioGraph[]) => {
@@ -40,27 +41,61 @@ const Tray: FunctionComponent<TrayProps> = () => {
         <details open>
           <summary>Graphs</summary>
           <ul>
-            {graphs.map((graph, index) => (
-              <TrayItem
-                key={index}
-                node={AudioGraphNodes.Graph}
-                id={graph.id}
-                label={graph.label}
-                active={graph === composer.activeGraph}
-              />
-            ))}
-            <li>
-              <a
-                className={`opacity-50 hover:opacity-100`}
-                onClick={() => {
-                  const graph = composer.composer.createNewGraph();
-                  composer.setActiveGraph(graph.id);
-                }}
-              >
-                <PlusIcon className="size-4 text-accent" />
-                New
-              </a>
-            </li>
+            {graphs.map((graph, index) =>
+              renamingGraph === graph.id ? (
+                <li key={index}>
+                  <input
+                    defaultValue={graph.label}
+                    type="text"
+                    placeholder="New graph name..."
+                    className="input w-full max-w-xs h-9 text-sm"
+                    onBlur={(e) => {
+                      if (e.target.value && !composer.graphs.find((g) => g.id !== graph.id && g.label === e.target.value))
+                      {
+                        graph.label = e.target.value;
+                        setRenamingGraph(undefined);
+                      }
+                      else
+                        alert(`Graph name ${e.target.value} is already in use.`);
+
+                    }}
+                  />
+                </li>
+              ) : (
+                <TrayItem
+                  key={index}
+                  node={AudioGraphNodes.Graph}
+                  id={graph.id}
+                  label={graph.label}
+                  active={graph === composer.activeGraph}
+                  onDoubleClick={() =>
+                    graph === composer.activeGraph
+                      ? setRenamingGraph(graph.id)
+                      : composer.setActiveGraph(graph.id)
+                  }
+                />
+              )
+            )}
+              <li>
+                <a
+                  className={`opacity-50 hover:opacity-100`}
+                  onClick={() => {
+                    const graph = composer.composer.createNewGraph();
+                    let index = 1;
+                    let name = "Graph 1";
+                    while (composer.graphs.find((g) => g.label === name)) {
+                      index++;
+                      name = `Graph ${index}`;
+                    }
+
+                    graph.label = name;
+                    composer.setActiveGraph(graph.id);
+                  }}
+                >
+                  <PlusIcon className="size-4 text-accent" />
+                  New
+                </a>
+              </li>
           </ul>
         </details>
       </li>

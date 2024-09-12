@@ -13,7 +13,6 @@ import {
 
 class AudioGraphNodesConverter implements Converter<AudioGraphNode[], any> {
   fromJson(jsonObj: any) {
-    console.log("???", jsonObj);
     try {
       const serializer = defaultSerializer();
       const newNodes: AudioGraphNode[] = [];
@@ -123,6 +122,8 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
 
   @JsonProperty public graphId: string = "";
 
+  public label = "Graph";
+
   public set graph(graph: IAudioGraph) {
     this._graph = graph;
 
@@ -176,6 +177,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
     const serialized = serializer.serialize(graph);
     const graphNode = serializer.deserialize(AudioGraph, serialized)
     graphNode.graphId = graph.id;
+    graphNode.regenerateID();
     return graphNode;
   }
 

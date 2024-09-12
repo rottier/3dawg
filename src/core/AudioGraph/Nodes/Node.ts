@@ -32,7 +32,20 @@ export abstract class AudioGraphNode<
     this.reconstruct();
   }
 
-  @JsonProperty() public readonly id: string = uuid();
+  @JsonProperty()
+  public get id() {
+    return this._id;
+  }
+
+  public set id(id: string) {
+    this._id = id;
+  }
+
+  private _id: string = uuid();
+
+  protected regenerateID() {
+    this.id = uuid();
+  }
 
   public get node() {
     return this._node;

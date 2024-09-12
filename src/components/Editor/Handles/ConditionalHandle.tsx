@@ -1,4 +1,4 @@
-import { Handle, HandleProps, useUpdateNodeInternals } from '@xyflow/react';
+import { Handle, HandleProps, useNodeId, useUpdateNodeInternals } from '@xyflow/react';
 import { FunctionComponent, useEffect } from 'react';
 
 type ConditionalHandleProps = HandleProps & {
@@ -6,7 +6,9 @@ type ConditionalHandleProps = HandleProps & {
 }
 
 const ConditionalHandle: FunctionComponent<ConditionalHandleProps> = ({updateInternals, ...restProps }) => {
-    try {
+    const nodeId = useNodeId();
+
+    if (nodeId) {
         const handle = <Handle {...restProps} />;
         const updateNodeInternals = useUpdateNodeInternals();
 
@@ -16,8 +18,8 @@ const ConditionalHandle: FunctionComponent<ConditionalHandleProps> = ({updateInt
         }, [])
 
         return handle
-    } catch (error) {
-        return null
+    } else {
+        return <></>;
     }
 };
 

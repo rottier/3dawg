@@ -42,7 +42,7 @@ export interface IAudioGraph extends IAudioGraphNode {
 
   instanceGraph(graph: IAudioGraph): IAudioGraph;
   addAudioNode(type: AudioGraphNodes): IAudioGraphNode;
-  addAudioNode(node: IAudioGraphNode): boolean;
+  addAudioNode(node: IAudioGraphNode): IAudioGraphNode;
   findAudioNode(id: string): IAudioGraphNode | undefined;
   removeAudioNode(id: string): boolean;
   removeAudioNode(node: IAudioGraphNode): boolean;
