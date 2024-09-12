@@ -3,6 +3,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { TrayItemData } from "./types";
 import { AudioGraphNodes } from "../../../core/AudioGraph/types";
 import usePointerMove from "../../../hooks/usePointerMove";
+import { useComposer } from "../../Composer";
 
 interface TrayItemProps {
   node: AudioGraphNodes;
@@ -29,6 +30,7 @@ const TrayItem: React.FC<TrayItemProps> = ({
   const [activateDrag, setActivateDrag] = useState(false);
   const [clientPosition, setClientPosition] = useState({ x: 0, y: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const { activeGraph } = useComposer();
 
   const onPointerDown = usePointerMove({
     onStart(e) {
@@ -68,7 +70,7 @@ const TrayItem: React.FC<TrayItemProps> = ({
 
   return (
     <div className="w-full h-full" onPointerDown={onPointerDown} onDoubleClick={onDoubleClick}>
-    <li ref={(!active && activateDrag) ? setNodeRef : null} {...listeners} {...attributes} className={'pointer-events-auto'}>
+    <li ref={(!active && activateDrag && activeGraph) ? setNodeRef : null} {...listeners} {...attributes} className={'pointer-events-auto'}>
       <a className={active ? "font-bold" : "font-normal"}>{label}</a>
     </li>
     </div>
