@@ -192,14 +192,17 @@ function NodeGraph() {
           </div>
         )}
       </div>
-      <div className="flex flex-row gap-1 p-1">
+      {activeGraph && (
+        <div className="flex flex-row gap-1 p-1">
         <button
           className="btn btn-wide btn-accent"
-          onClick={() => (playing ? activeGraph?.stop() : activeGraph?.start())}
+          onClick={() => (playing ? activeGraph.stop() : activeGraph.start())}
         >
           {playing ? "Stop" : "Play"}
         </button>
       </div>
+      )}
+      
     </div>
   );
 }
