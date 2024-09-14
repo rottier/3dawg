@@ -32,8 +32,8 @@ export const Graph: FunctionComponent = ({
     <AudioNodeWrapper
       header={graphName}
       onDoubleClickHeader={() =>
-        data?.audioNode
-          ? composer.setActiveGraph(data.audioNode.graphId)
+        graphNode
+          ? composer.setActiveGraph(graphNode.id)
           : undefined
       }
     >
