@@ -144,6 +144,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
     if (this.context?.state !== "running" && !this.playing) {
       this.context?.resume();
     }
+
     this.nodes.forEach((node) => node.start());
 
     this.playing = true;
@@ -175,7 +176,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
   instanceGraph(graph: IAudioGraph): AudioGraph {
     const serializer = defaultSerializer();
     const serialized = serializer.serialize(graph);
-    const graphNode = serializer.deserialize(AudioGraph, serialized)
+    const graphNode = serializer.deserialize(AudioGraph, serialized);
     graphNode.graphId = graph.id;
     graphNode.regenerateID();
     return graphNode;
@@ -207,7 +208,9 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
       let newNode = createAudioGraphNodeOfType(type as AudioGraphNodes);
 
       if (type === AudioGraphNodes.Graph) {
-        throw new Error("Cannot add a graph without a reference to an existing graph.");
+        throw new Error(
+          "Cannot add a graph without a reference to an existing graph."
+        );
       }
 
       newNode.graph = this;

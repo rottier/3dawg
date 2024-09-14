@@ -1,3 +1,4 @@
+import { IAudioGraphNode } from "../../../core/AudioGraph/interfaces";
 import { AudioGraphNodes } from "../../../core/AudioGraph/types";
 
 export type TrayItemData = {
@@ -5,4 +6,5 @@ export type TrayItemData = {
     type: AudioGraphNodes;
     label: string;
     position: { x: number; y: number };
+    graphNode?: IAudioGraphNode
 }

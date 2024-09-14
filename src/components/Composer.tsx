@@ -10,6 +10,9 @@ import React, {
 import { AudioGraph, AudioGraphNode } from "../core/AudioGraph/Nodes";
 import { AudioGraphLink, IAudioGraphNode } from "../core/AudioGraph/interfaces";
 import { Composer } from "../core/Composer/Composer";
+import { AudioGraphNodeDestination } from "../core/AudioGraph/Nodes/Destination";
+import { AudioGraphNodes } from "../core/AudioGraph/types";
+import { link } from "fs";
 
 type ComposerProviderType = {
   onLinks?: typeof AudioGraph.prototype.onLinks;
@@ -18,6 +21,8 @@ type ComposerProviderType = {
   activeGraph?: AudioGraph;
   setActiveGraph: (id: string) => void;
   composer: Composer;
+  start: () => void;
+  stop: () => void;
 };
 
 type ComposerConsumerType = {
@@ -28,6 +33,8 @@ type ComposerConsumerType = {
   activeGraph?: AudioGraph;
   graphs: AudioGraph[];
   setActiveGraph: (id: string) => void;
+  start: () => void;
+  stop: () => void;
 };
 
 type ComposerProviderProps = {
@@ -43,16 +50,81 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({
 }) => {
   const composer = useRef(new Composer());
   const [activeGraph, setActiveGraph] = useState<AudioGraph>();
+  const destinationNode = useRef<AudioGraphNodeDestination>(
+    new AudioGraphNodeDestination()
+  );
 
-  const setActiveGraphById = useCallback((id: string) => {
-    const graph = composer.current.findGraph(id);
+  const linkDestination = useCallback(
+    (graph: AudioGraph) => {
+      graph.addAudioNode(destinationNode.current);
+      graph.nodes.forEach((node) => {
+        if (node.type === AudioGraphNodes.Output) {
+          graph.linkNodes(node.id, destinationNode.current.id);
+        }
+      });
+    },
+    [activeGraph]
+  );
 
-    if (graph) {
-      setActiveGraph(graph);
-    } else {
-        throw(new Error(`Graph with id ${id} not found`));
+  const unlinkDestination = useCallback(
+    (graph: AudioGraph) => {
+      graph.nodes.forEach((node) => {
+        if (node.type === AudioGraphNodes.Output) {
+          graph.unlinkNodes(node.id, destinationNode.current.id);
+          graph.removeAudioNode(destinationNode.current.id);
+        }
+      });
+    },
+    [activeGraph]
+  );
+
+  const start = useCallback(() => {
+    const lastActiveGraph = activeGraph;
+
+    if (lastActiveGraph) {
+      linkDestination(lastActiveGraph);
+
+      lastActiveGraph.start();
     }
-  }, [composer]);
+  }, [activeGraph]);
+
+  const stop = useCallback(() => {
+    const lastActiveGraph = activeGraph;
+
+    if (lastActiveGraph) {
+      lastActiveGraph.stop();
+
+      unlinkDestination(lastActiveGraph);
+    }
+  }, [activeGraph]);
+
+  const setActiveGraphById = useCallback(
+    (id: string) => {
+      const graph = composer.current.findGraph(id);
+
+      if (graph) {
+        if (activeGraph) stop();
+
+        setActiveGraph(graph);
+      } else {
+        throw new Error(`Graph with id ${id} not found`);
+      }
+    },
+    [composer]
+  );
+
+  useEffect(() => {
+    const lastActiveGraph = activeGraph;
+
+    if (lastActiveGraph) {
+      return () => {
+        if (lastActiveGraph.isPlaying)
+          lastActiveGraph.stop();
+        
+        unlinkDestination(lastActiveGraph)
+      };
+    }
+  }, [activeGraph]);
 
   return (
     <ComposerContext.Provider
@@ -63,6 +135,8 @@ const ComposerProviderInternal: React.FC<ComposerProviderProps> = ({
         onPlayback: activeGraph?.onPlayback,
         setActiveGraph: setActiveGraphById,
         activeGraph: activeGraph,
+        start,
+        stop,
       }}
     >
       {children}
@@ -122,6 +196,8 @@ const useComposer = (): ComposerConsumerType => {
     nodes,
     playing,
     setActiveGraph: context.setActiveGraph,
+    start: context.start,
+    stop: context.stop,
   };
 };
 export { ComposerContext, ComposerProvider, useComposer };

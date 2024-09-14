@@ -56,6 +56,7 @@ export const TrayItemGraph: FunctionComponent<TrayItemGraphProps> = ({
           ? setRenamingGraph(true)
           : setActiveGraph(graph.id)
       }
+      graphNode={graph}
     />
   ) : (
     <li

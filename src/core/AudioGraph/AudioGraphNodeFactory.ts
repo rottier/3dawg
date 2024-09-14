@@ -1,8 +1,11 @@
 import { AudioGraph, AudioGraphNode, AudioGraphNodeDynamicsCompressor, AudioGraphNodeGain, AudioGraphNodeOscillator, AudioGraphNodeOutput } from "./Nodes";
+import { AudioGraphNodeDestination } from "./Nodes/Destination";
 import { AudioGraphNodes } from "./types";
 
 export const getAudioGraphNodeType = (type: AudioGraphNodes): typeof AudioGraphNode<any, any> => {
     switch (type) {
+      case AudioGraphNodes.Destination:
+        return AudioGraphNodeDestination;
       case AudioGraphNodes.Oscillator:
         return AudioGraphNodeOscillator;
       case AudioGraphNodes.Gain:

@@ -5,7 +5,8 @@ export enum AudioGraphNodes {
     Oscillator = "Oscillator",
     Gain = "Gain",
     DynamicsCompressor = "DynamicsCompressor",
-    Graph = "Graph"
+    Graph = "Graph",
+    Destination = "Destination"
 }
 
 export type AudioGraphNodeType = keyof typeof AudioGraphNodes;

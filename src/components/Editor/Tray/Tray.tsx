@@ -31,6 +31,7 @@ const Tray: FunctionComponent<TrayProps> = () => {
           <ul>
             {Object.values(AudioGraphNodes).map(
               (node, index) =>
+                node !== AudioGraphNodes.Destination &&
                 node !== AudioGraphNodes.Invalid &&
                 node !== AudioGraphNodes.Graph && (
                   <TrayItem key={index} node={node} />

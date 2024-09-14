@@ -4,6 +4,7 @@ import { TrayItemData } from "./types";
 import { AudioGraphNodes } from "../../../core/AudioGraph/types";
 import usePointerMove from "../../../hooks/usePointerMove";
 import { useComposer } from "../../Composer";
+import { IAudioGraphNode } from "../../../core/AudioGraph/interfaces";
 
 interface TrayItemProps {
   node: AudioGraphNodes;
@@ -11,6 +12,7 @@ interface TrayItemProps {
   label?: string;
   active?: boolean;
   onDoubleClick?: () => void;
+  graphNode?: IAudioGraphNode;
 }
 
 const defaultDistance = () => {
@@ -24,7 +26,8 @@ const TrayItem: React.FC<TrayItemProps> = ({
   id = node,
   label = node,
   active = false,
-  onDoubleClick
+  onDoubleClick,
+  graphNode,
 }) => {
   const [distance, setDistance] = useState(defaultDistance());
   const [activateDrag, setActivateDrag] = useState(false);
@@ -65,6 +68,7 @@ const TrayItem: React.FC<TrayItemProps> = ({
       id: id,
       label: label,
       position: clientPosition,
+      graphNode: graphNode,
     } as TrayItemData,
   });
 

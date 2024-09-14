@@ -39,7 +39,7 @@ import { AudioGraphNodes } from "../../core/AudioGraph/types";
 const proOptions = { hideAttribution: true };
 
 function NodeGraph() {
-  const { activeGraph, playing, composer, setActiveGraph } = useComposer();
+  const { activeGraph, playing, composer, setActiveGraph, start, stop } = useComposer();
   const reactFlow = useReactFlow();
   useDndMonitor({
     onDragEnd(event) {
@@ -193,7 +193,10 @@ function NodeGraph() {
             </p>
             <p className="text-white/50 text-2xl text-center font-light">
               ...or click{" "}
-              <a className="cursor-pointer" onClick={() => setActiveGraph(composer.createNewGraph().id)}>
+              <a
+                className="cursor-pointer"
+                onClick={() => setActiveGraph(composer.createNewGraph().id)}
+              >
                 here
               </a>{" "}
               to add a new graph
@@ -205,7 +208,11 @@ function NodeGraph() {
         <div className="flex flex-row gap-1 p-1">
           <button
             className="btn btn-wide btn-accent"
-            onClick={() => (playing ? activeGraph.stop() : activeGraph.start())}
+            onClick={() =>
+              playing
+                ? stop()
+                : start()
+            }
           >
             {playing ? "Stop" : "Play"}
           </button>
@@ -220,16 +227,25 @@ function NodeGraphWithTray() {
   const [overlayComponent, setOverlayComponent] = useState<ReactNode | null>(
     null
   );
-  const [activeType, setActiveType] = useState<string | null>(null);
+  const [activeType, setActiveType] = useState<string | undefined>(undefined);
+  const [audioGraphNode, setAudioGraphNode] = useState<IAudioGraphNode | undefined>(undefined);
   const reactFlow = useReactFlow();
 
   useDndMonitor({
     onDragStart(event) {
       setDragSuccess(false);
-      setActiveType(String(event.active.data.current?.type));
+      const type = String(event.active.data.current?.type)
+      setActiveType(type);
+
+      if (type === AudioGraphNodes.Graph)
+        setAudioGraphNode(event.active.data.current?.graphNode)
+      else
+        setAudioGraphNode(undefined)
+
     },
     onDragEnd(event) {
-      setActiveType(null);
+      setActiveType(undefined);
+      setAudioGraphNode(undefined);
       if (event.over?.id === "graph") {
         setDragSuccess(true);
       }
@@ -240,7 +256,7 @@ function NodeGraphWithTray() {
     if (activeType && Object.keys(NodeTypes).includes(activeType)) {
       const component = NodeTypes[activeType as keyof typeof NodeTypes];
       setOverlayComponent(
-        createElement(component, { id: "previewOverlay" } as React.Attributes)
+        createElement(component, { id: "previewOverlay", baseGraph: audioGraphNode } as React.Attributes)
       );
     } else {
       setOverlayComponent(null);

@@ -23,7 +23,7 @@ export const AudioSelect = <T extends AudioGraphNode>({
       <select
         value={value ?? 0}
         onChange={(e) => setValue(e.target.value)}
-        className="select select-bordered text-white"
+        className="select select-bordered text-white font-mono"
       >
         {Object.entries(options).map(([key, value]) => (
           <option key={key} value={key} label={value}>

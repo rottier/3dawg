@@ -1,15 +1,17 @@
-import { TContext, IAudioDestinationNode } from "standardized-audio-context";
+import { TContext, GainNode } from "standardized-audio-context";
 import { AudioGraphNode } from "./Node";
 import { AudioGraphNodes } from "../types";
 
-export class AudioGraphNodeOutput extends AudioGraphNode<
-  IAudioDestinationNode<TContext>
-> {
+const defaults = {
+  name: "Output Name",
+}
+export class AudioGraphNodeOutput extends AudioGraphNode<GainNode<TContext>> {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Output;
-  reconstruct = () =>
-    (this.node = this.context.destination);
+  reconstruct = () => (this.node = new GainNode(this.context, { gain: 1 }));
   constructor() {
     super();
+    this._parametersDefault = defaults;
+    this._parameters = {...defaults};
     this.reconstruct();
   }
 }
