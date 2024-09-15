@@ -21,7 +21,7 @@ export const AudioNodeWrapper: FunctionComponent<AudioNodeWrapperProps> = ({
     <>
       <div className="bg-secondary w-fit h-fit rounded drop-shadow-xl">
         <div className="w-full h-10 flex flex-col items-center justify-center px-4 bg-primary rounded-t" onDoubleClick={onDoubleClickHeader}>
-          {from && <ConditionalHandle type="target" position={Position.Left} className="!top-5 !border-accent !bg-accent !p-1 hover:!p-2" />}
+          {from && <ConditionalHandle type="target" position={Position.Left} className="!top-5 !border-accent !bg-accent !size-4" />}
           <h2 className=" text-white font-mono h-fit">
             {header}
           </h2>
@@ -29,11 +29,11 @@ export const AudioNodeWrapper: FunctionComponent<AudioNodeWrapperProps> = ({
             <ConditionalHandle
               type="source"
               position={Position.Right}
-              className="!top-5 !border-accent !bg-accent !p-1 hover:!p-2"
+              className="!top-5 !border-accent !bg-accent !size-4"
             />
           )}
         </div>
-        <div className="p-2 pl-4 flex flex-col gap-6 nodrag">{children}</div>
+        <div className="p-2 flex flex-col gap-6 nodrag">{children}</div>
       </div>
     </>
   );

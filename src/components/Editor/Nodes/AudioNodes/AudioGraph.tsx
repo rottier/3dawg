@@ -4,6 +4,7 @@ import { AudioNodeProps } from "../types";
 import { AudioGraph } from "../../../../core/AudioGraph/Nodes";
 import { useComposer } from "../../../Composer";
 import { AudioGraphNodes } from "../../../../core/AudioGraph/types";
+import { AudioParameterWrapper } from "../AudioParameterWrapper";
 
 export const Graph: FunctionComponent = ({
   data,
@@ -31,25 +32,30 @@ export const Graph: FunctionComponent = ({
         graphNode ? composer.setActiveGraph(graphNode.id) : undefined
       }
     >
-      <div className="flex flex-row gap-4">
-        <div>
+      <div className="flex flex-row">
+        <div className="flex flex-col gap-4">
           {graphNode?.nodes
             .filter((node) => node.type === AudioGraphNodes.Input)
             .sort((a, b) => a.parameters.name.localeCompare(b.parameters.name))
             .map((node, i) => (
-              <p className="text-white" key={i}>
-                {node.parameters.name}
-              </p>
+              <AudioParameterWrapper
+                key={i}
+                parameterId={node.parameters.name}
+                linkable={true}
+              />
             ))}
         </div>
-        <div>
+        <div className="flex flex-col gap-4">
           {graphNode?.nodes
             .filter((node) => node.type === AudioGraphNodes.Output)
             .sort((a, b) => a.parameters.name.localeCompare(b.parameters.name))
             .map((node, i) => (
-              <p className="text-white" key={i}>
-                {node.parameters.name}
-              </p>
+              <AudioParameterWrapper
+                right={true}
+                key={i}
+                parameterId={node.parameters.name}
+                linkable={true}
+              />
             ))}
         </div>
       </div>
