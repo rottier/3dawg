@@ -8,6 +8,7 @@ export interface IAudioGraphNode<
   Parameters extends Record<string, any> = Record<string, any>
 > {
   readonly id: string;
+  prototypeGraphId?: string;
   readonly context: AudioContext;
   readonly type: AudioGraphNodes;
   label: string;

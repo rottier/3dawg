@@ -10,6 +10,7 @@ export class Composer {
 
     createNewGraph() {
         const newAudioGraph = new AudioGraph();
+        newAudioGraph.prototypeGraphId = newAudioGraph.id;
         this._graphs.push(newAudioGraph);
         this.onGraphsChange.notify();
         return newAudioGraph;

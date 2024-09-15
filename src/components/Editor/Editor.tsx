@@ -50,13 +50,14 @@ function NodeGraph() {
         if (activeGraph) {
           let newAudioNode: IAudioGraphNode;
           if (nodeType === AudioGraphNodes.Graph) {
-            const referenceGraph = composer.findGraph(data.id);
-            if (!referenceGraph)
+            const prototypeGraph = composer.findGraph(data.id);
+            if (!prototypeGraph)
               throw new Error(
                 `Cannot add graph with id ${data.id} as it does not exist within the composer.`
               );
 
-            newAudioNode = activeGraph.addAudioNode(referenceGraph);
+            newAudioNode = activeGraph.addAudioNode(prototypeGraph);
+            newAudioNode.prototypeGraphId = data.id;
           } else {
             newAudioNode = activeGraph.addAudioNode(nodeType);
           }
@@ -238,7 +239,7 @@ function NodeGraphWithTray() {
       setActiveType(type);
 
       if (type === AudioGraphNodes.Graph)
-        setAudioGraphNode(event.active.data.current?.graphNode)
+        setAudioGraphNode(event.active.data.current?.graphNode as IAudioGraphNode);
       else
         setAudioGraphNode(undefined)
 
@@ -256,7 +257,9 @@ function NodeGraphWithTray() {
     if (activeType && Object.keys(NodeTypes).includes(activeType)) {
       const component = NodeTypes[activeType as keyof typeof NodeTypes];
       setOverlayComponent(
-        createElement(component, { id: "previewOverlay", baseGraph: audioGraphNode } as React.Attributes)
+        createElement(component, { id: "previewOverlay", data: {
+          audioNode: audioGraphNode
+        } } as React.Attributes)
       );
     } else {
       setOverlayComponent(null);

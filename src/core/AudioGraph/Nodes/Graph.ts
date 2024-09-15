@@ -120,7 +120,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Graph;
   reconstruct = () => this.nodes.forEach((node) => node.reconstruct());
 
-  @JsonProperty public graphId: string = "";
+  @JsonProperty public prototypeGraphId: string = "";
 
   public label = "Graph";
 
@@ -177,7 +177,7 @@ export class AudioGraph extends AudioGraphNode implements IAudioGraph {
     const serializer = defaultSerializer();
     const serialized = serializer.serialize(graph);
     const graphNode = serializer.deserialize(AudioGraph, serialized);
-    graphNode.graphId = graph.id;
+    graphNode.prototypeGraphId = graph.id;
     graphNode.regenerateID();
     return graphNode;
   }

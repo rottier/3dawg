@@ -1,6 +1,7 @@
 
 export enum AudioGraphNodes {
     Invalid = "Invalid",
+    Input = "Input",
     Output = "Output",
     Oscillator = "Oscillator",
     Gain = "Gain",

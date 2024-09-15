@@ -3,10 +3,10 @@ import { AudioGraphNode } from "./Node";
 import { AudioGraphNodes } from "../types";
 
 const defaults = {
-  name: "Output",
+  name: "Input",
 }
-export class AudioGraphNodeOutput extends AudioGraphNode<GainNode<TContext>> {
-  public readonly type: AudioGraphNodes = AudioGraphNodes.Output;
+export class AudioGraphNodeInput extends AudioGraphNode<GainNode<TContext>> {
+  public readonly type: AudioGraphNodes = AudioGraphNodes.Input;
   reconstruct = () => (this.node = new GainNode(this.context, { gain: 1 }));
   constructor() {
     super();
