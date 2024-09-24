@@ -5,10 +5,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { AudioGraph as IAudioGraph } from "../../../core/AudioGraph/Nodes";
 import { AudioGraphNodes } from "../../../core/AudioGraph/types";
 import { useComposer } from "../../Composer";
 import TrayItem from "./TrayItem";
+import { IAudioGraph } from "../../../core/AudioGraph";
 
 interface TrayItemGraphProps {
   graph: IAudioGraph;

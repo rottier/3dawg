@@ -1,22 +1,21 @@
 import { Subscribable } from "../../utils/Subscribable";
-import { AudioGraph } from "../AudioGraph/Nodes";
+import { AudioGraph, IAudioGraph } from "../AudioGraph";
 
 export class Composer {
-    private _graphs: AudioGraph[] = [];
-    public readonly onGraphsChange = new Subscribable<AudioGraph[]>(() => this._graphs);
+    private _graphs: IAudioGraph[] = [];
+    public readonly onGraphsChange = new Subscribable<IAudioGraph[]>(() => this._graphs);
     public get graphs() {
         return this._graphs;
     }
 
-    createNewGraph() {
+    createNewGraph(): IAudioGraph {
         const newAudioGraph = new AudioGraph();
-        newAudioGraph.prototypeGraphId = newAudioGraph.id;
         this._graphs.push(newAudioGraph);
         this.onGraphsChange.notify();
         return newAudioGraph;
     }
 
-    addGraph(graph: AudioGraph) {
+    addGraph(graph: IAudioGraph) {
         const i = this._graphs.findIndex((g) => g.id === graph.id);
         if (i >= 0) {
             console.warn(`Graph with id ${graph.id} already exists in the composer`);
@@ -36,7 +35,7 @@ export class Composer {
         return false;
     }
     
-    findGraph(id: string) {
+    findGraph(id: string): IAudioGraph | undefined {
         return this._graphs.find((graph) => graph.id === id);
     }
 }

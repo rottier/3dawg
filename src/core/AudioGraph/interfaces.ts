@@ -1,6 +1,8 @@
-import { IAudioNode, TContext, AudioContext } from "standardized-audio-context";
+import { IAudioNode, TContext } from "standardized-audio-context";
 import { Subscribable } from "../../utils/Subscribable";
 import { AudioGraphNodes } from "./types";
+import { WebAudioGraphNode } from "./WebAudioGraphNode";
+import { Composer } from "../Composer/Composer";
 
 
 export interface IAudioGraphNode<
@@ -8,8 +10,9 @@ export interface IAudioGraphNode<
   Parameters extends Record<string, any> = Record<string, any>
 > {
   readonly id: string;
-  prototypeGraphId?: string;
-  readonly context: AudioContext;
+  graphId?: string;
+  composer?: Composer;
+  context: TContext;
   readonly type: AudioGraphNodes;
   label: string;
   playing: boolean;
@@ -34,14 +37,14 @@ export interface IAudioGraphNode<
   onStop(): void;
 }
 
-export interface IAudioGraph extends IAudioGraphNode {
+export interface IAudioGraph extends IAudioGraphNode, WebAudioGraphNode {
   readonly onPlayback: Subscribable<boolean>;
   readonly onNodes: Subscribable<IAudioGraphNode[]>;
   readonly onLinks: Subscribable<AudioGraphLink[]>;
   readonly nodes: IAudioGraphNode[];
   readonly links: AudioGraphLink[];
 
-  instanceGraph(graph: IAudioGraph): IAudioGraph;
+  copy(): IAudioGraph;
   addAudioNode(type: AudioGraphNodes): IAudioGraphNode;
   addAudioNode(node: IAudioGraphNode): IAudioGraphNode;
   findAudioNode(id: string): IAudioGraphNode | undefined;

@@ -56,8 +56,9 @@ function NodeGraph() {
                 `Cannot add graph with id ${data.id} as it does not exist within the composer.`
               );
 
-            newAudioNode = activeGraph.addAudioNode(prototypeGraph);
-            newAudioNode.prototypeGraphId = data.id;
+            newAudioNode = activeGraph.addAudioNode(AudioGraphNodes.Graph);
+            newAudioNode.composer = composer;
+            newAudioNode.graphId = data.id;
           } else {
             newAudioNode = activeGraph.addAudioNode(nodeType);
           }

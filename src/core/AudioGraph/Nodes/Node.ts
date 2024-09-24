@@ -1,10 +1,11 @@
 import { v4 as uuid } from 'uuid';
 import { Subscribable } from "../../../utils/Subscribable";
-import { IAudioNode, TContext, isAnyAudioNode, AudioContext, IAudioParam } from "standardized-audio-context";
+import { IAudioNode, TContext, isAnyAudioNode, IAudioParam } from "standardized-audio-context";
 import { AudioGraphNodes } from "../types";
 import { IAudioGraph, IAudioGraphNode } from "../interfaces";
 import { JsonProperty} from "@paddls/ts-serializer";
 import { globalAudioContext } from "../AudioGraphContext";
+import { on } from 'events';
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -23,11 +24,11 @@ export abstract class AudioGraphNode<
   /**
    * The audio context used by the audio graph.
    */
-  protected _context: AudioContext = globalAudioContext;
-  public get context(): AudioContext {
+  protected _context: TContext = globalAudioContext;
+  public get context(): TContext {
     return this._context;
   }
-  public set context(context: AudioContext) {
+  public set context(context: TContext) {
     this._context = context;
     this.reconstruct();
   }
@@ -137,6 +138,8 @@ export abstract class AudioGraphNode<
   }
 
   start() {
+    this.onBeforeStart();
+
     if (this.isPlaying) {
       this.stop();
     }
@@ -170,11 +173,15 @@ export abstract class AudioGraphNode<
   stop() {
     if (!this.playing) return;
 
+    this.onBeforeStop();
+
     this.playing = false;
     this.onStop();
     this.reconstruct();
   }
   reconstruct = () => { };
+  onBeforeStart = () => { };
+  onBeforeStop = () => { };
   onStart = () => { };
   onStop = () => { };
   resetParameters = () => this.parameters = this._parametersDefault;

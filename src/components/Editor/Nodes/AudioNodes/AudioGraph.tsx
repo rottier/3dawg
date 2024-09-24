@@ -1,21 +1,22 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { AudioNodeWrapper } from "../AudioNodeWrapper";
 import { AudioNodeProps } from "../types";
-import { AudioGraph } from "../../../../core/AudioGraph/Nodes";
+import { AudioGraphNodeGraph } from "../../../../core/AudioGraph/Nodes";
 import { useComposer } from "../../../Composer";
 import { AudioGraphNodes } from "../../../../core/AudioGraph/types";
 import { AudioParameterWrapper } from "../AudioParameterWrapper";
+import { IAudioGraph } from "../../../../core/AudioGraph";
 
 export const Graph: FunctionComponent = ({
   data,
-}: AudioNodeProps<AudioGraph>) => {
+}: AudioNodeProps<AudioGraphNodeGraph>) => {
   const composer = useComposer();
   const [graphName, setGraphName] = useState("");
-  const [graphNode, setGraphNode] = useState<AudioGraph | undefined>(undefined);
+  const [graphNode, setGraphNode] = useState<IAudioGraph | undefined>(undefined);
 
   useEffect(() => {
     if (data?.audioNode) {
-      const graphId = data.audioNode.prototypeGraphId;
+      const graphId = data.audioNode.graphId;
       const prototypeGraph = composer.graphs.find((g) => g.id === graphId);
 
       if (prototypeGraph) {

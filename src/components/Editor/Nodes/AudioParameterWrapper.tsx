@@ -44,7 +44,7 @@ export const AudioParameterWrapper: FunctionComponent<
               />
             ) : (
               <ConditionalHandle
-                type="target"
+                type="source"
                 position={Position.Right}
                 id={parameterId}
                 className="!relative !top-0 !border-accent !bg-accent !size-full !transform-none ml-4"
