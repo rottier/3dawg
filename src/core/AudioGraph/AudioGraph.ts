@@ -117,8 +117,6 @@ export class AudioGraph extends Mixin(AudioGraphNode, WebAudioGraphNode) impleme
   public readonly type: AudioGraphNodes = AudioGraphNodes.Invalid;
   reconstruct = () => this.nodes.forEach((node) => node.reconstruct());
 
-  @JsonProperty public prototypeGraphId: string = "";
-
   public label = "Graph";
 
   public set graph(graph: IAudioGraph) {

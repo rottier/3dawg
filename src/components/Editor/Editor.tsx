@@ -35,6 +35,7 @@ import {
   IAudioGraphNode,
 } from "../../core/AudioGraph/interfaces";
 import { AudioGraphNodes } from "../../core/AudioGraph/types";
+import { AudioGraphNodeGraph } from "../../core/AudioGraph";
 
 const proOptions = { hideAttribution: true };
 
@@ -230,8 +231,9 @@ function NodeGraphWithTray() {
     null
   );
   const [activeType, setActiveType] = useState<string | undefined>(undefined);
-  const [audioGraphNode, setAudioGraphNode] = useState<IAudioGraphNode | undefined>(undefined);
+  const [audioGraphNode, setAudioGraphNode] = useState<AudioGraphNodeGraph | undefined>(undefined);
   const reactFlow = useReactFlow();
+  const { composer } = useComposer();
 
   useDndMonitor({
     onDragStart(event) {
@@ -239,10 +241,14 @@ function NodeGraphWithTray() {
       const type = String(event.active.data.current?.type)
       setActiveType(type);
 
-      if (type === AudioGraphNodes.Graph)
-        setAudioGraphNode(event.active.data.current?.graphNode as IAudioGraphNode);
+      if (type === AudioGraphNodes.Graph) {
+        const newGraphNode = new AudioGraphNodeGraph();
+        newGraphNode.composer = composer;
+        newGraphNode.graphId = event.active.data.current?.graphId as string;
+        setAudioGraphNode(newGraphNode);
+      }
       else
-        setAudioGraphNode(undefined)
+        setAudioGraphNode(undefined);
 
     },
     onDragEnd(event) {
@@ -258,9 +264,11 @@ function NodeGraphWithTray() {
     if (activeType && Object.keys(NodeTypes).includes(activeType)) {
       const component = NodeTypes[activeType as keyof typeof NodeTypes];
       setOverlayComponent(
-        createElement(component, { id: "previewOverlay", data: {
-          audioNode: audioGraphNode
-        } } as React.Attributes)
+        createElement(component, {
+          id: "previewOverlay", data: {
+            audioNode: audioGraphNode
+          }
+        } as React.Attributes)
       );
     } else {
       setOverlayComponent(null);

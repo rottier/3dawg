@@ -3,9 +3,10 @@ import { Subscribable } from "../../../utils/Subscribable";
 import { IAudioNode, TContext, isAnyAudioNode, IAudioParam } from "standardized-audio-context";
 import { AudioGraphNodes } from "../types";
 import { IAudioGraph, IAudioGraphNode } from "../interfaces";
-import { JsonProperty} from "@paddls/ts-serializer";
+import { JsonProperty } from "@paddls/ts-serializer";
 import { globalAudioContext } from "../AudioGraphContext";
 import { on } from 'events';
+import { AudioGraphNodeGraph } from '..';
 
 interface IAudioParamNode {
   setValueAtTime: (value: number, endTime: number) => void;
@@ -51,7 +52,7 @@ export abstract class AudioGraphNode<
   public get node() {
     return this._node;
   }
-  protected set node(node: Node | undefined) {
+  public set node(node: Node | undefined) {
     this._node = node;
   }
   private _node: Node | undefined;
@@ -91,10 +92,10 @@ export abstract class AudioGraphNode<
         if (this._parameters[key as keyof Parameters] !== value) {
           this._parameters[key as keyof Parameters] = value;
           changed = true;
-  
+
           if (this.node) {
             const nodeAsRecord = this.node as Record<string, any>;
-  
+
             if (this.playing &&
               key in this.node &&
               typeof nodeAsRecord[key]?.setValueAtTime === "function" &&
@@ -102,7 +103,7 @@ export abstract class AudioGraphNode<
             ) {
               const setValueAtTime = (this.node as any)[key]
                 .setValueAtTime as IAudioParamNode["setValueAtTime"];
-  
+
               if (setValueAtTime) {
                 setValueAtTime(Number(value), this.context?.currentTime || 0);
               }
@@ -151,20 +152,33 @@ export abstract class AudioGraphNode<
 
       const toNode = this.graph?.findAudioNode(link.to);
 
-      if (isAnyAudioNode(toNode?.node) && isAnyAudioNode(this.node) && (link.toParameter ? link.toParameter in toNode : true)) {
+      if (isAnyAudioNode(this.node)) {
         try {
-          if (link.toParameter) {
-            const nodeAsRecord = toNode as Record<string, any>;
-            this.node.connect(nodeAsRecord[link.toParameter] as IAudioParam);
+          if (isAnyAudioNode(toNode?.node) && (link.toParameter ? link.toParameter in toNode : true)) {
+            if (link.toParameter) {
+              const nodeAsRecord = toNode as Record<string, any>;
+              this.node.connect(nodeAsRecord[link.toParameter] as IAudioParam);
+            }
+            else
+              this.node.connect(toNode.node);
+          } else if (toNode instanceof AudioGraphNodeGraph) {
+            const subGraph = toNode as AudioGraphNodeGraph;
+            const inputNode = subGraph.node?.nodes.find((n) => n.type === AudioGraphNodes.Input && n.parameters.name === link.toParameter);
+
+            if (isAnyAudioNode(inputNode?.node))
+              this.node.connect(inputNode.node)
+          } else if (this instanceof AudioGraphNodeGraph) {
+            const subGraph = this as AudioGraphNodeGraph;
+            const outputNode = subGraph.node?.nodes.find((n) => n.type === AudioGraphNodes.Output && n.parameters.name === link.fromParameter);
+
+            if (isAnyAudioNode(outputNode?.node))
+              outputNode.node.connect(this.node);
           }
-          else
-            this.node.connect(toNode.node);
         } catch (error) {
-          console.error(error);
+          console.error(`Could not link node ${link.from} ${link.fromParameter && `(from parameter ${link.fromParameter})`} to node ${link.to} ${link.toParameter && `(to parameter ${link.toParameter})`}:`, error);
         }
       }
     }
-
     this.playing = true;
 
     this.onStart();
@@ -179,11 +193,11 @@ export abstract class AudioGraphNode<
     this.onStop();
     this.reconstruct();
   }
-  reconstruct = () => { };
-  onBeforeStart = () => { };
-  onBeforeStop = () => { };
-  onStart = () => { };
-  onStop = () => { };
+  reconstruct() { };
+  onBeforeStart() { };
+  onBeforeStop() { };
+  onStart() { };
+  onStop() { };
   resetParameters = () => this.parameters = this._parametersDefault;
   resetParameter = (name: string) => this.parameters = { [name]: this._parametersDefault[name] as Parameters[string] } as Partial<Parameters>;
 }

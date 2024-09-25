@@ -3,14 +3,12 @@ import { AudioGraphNodes } from "../types";
 import { Composer } from "../../Composer/Composer";
 import { IAudioGraph } from "../interfaces";
 import { JsonProperty } from "@paddls/ts-serializer";
-import { IAudioNode, TContext } from "standardized-audio-context";
 
 export class AudioGraphNodeGraph extends AudioGraphNode<IAudioGraph> {
     public readonly type: AudioGraphNodes = AudioGraphNodes.Graph;
     private _composer?: Composer;
-    private _graphId?: string;
-    private _nodesToDisconnect?: { from: IAudioNode<TContext>; to: IAudioNode<TContext> }[] = [];
-    @JsonProperty() public get graphId(): string | undefined {
+    @JsonProperty('graphId') private _graphId?: string;
+    public get graphId(): string | undefined {
         return this._graphId;
     }
     public set graphId(id: string) {
@@ -29,7 +27,24 @@ export class AudioGraphNodeGraph extends AudioGraphNode<IAudioGraph> {
     public set composer(value: Composer) {
         this._composer = value;
     }
-    reconstruct = () => {
+
+    onStart = () => {
+        this.node?.start();
+    }
+
+    onStop = () => {
+        this.node?.stop();
+    }
+
+    get numberOfInputs() {
+        return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Input).length || 0;
+    }
+
+    get numberOfOutputs() {
+        return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Output).length || 0;
+    }
+
+    reconstruct = () => {        
         if (this._composer && this.graphId) {
             const node = this._composer.findGraph(this.graphId);
 
@@ -46,55 +61,10 @@ export class AudioGraphNodeGraph extends AudioGraphNode<IAudioGraph> {
                     newParameters
                 }
                 this._parametersDefault = {...this._parameters}
+
+                this.node.reconstruct();
             }
         };
-    };
-
-    onStart = () => {
-        if (this.node) {
-            this.linksFrom().forEach((link) => {
-                const fromNode = this.graph?.findAudioNode(link.from);
-                const toNode = this.node?.nodes.find((n) => n.type === AudioGraphNodes.Input && n.parameters.name === link.toParameter);
-
-                if (fromNode && toNode && toNode.node && fromNode.node) {
-                    const connected = fromNode.node.connect(toNode.node, toNode.parameters.name);
-
-                    if (connected)
-                        this._nodesToDisconnect?.push({ from: fromNode.node, to: toNode.node });
-                }
-                else {
-                    throw new Error(`Cannot connect node ${link.from} to ${link.to}.`);
-                }
-            });
-
-            this.linksTo().forEach((link) => {
-                const fromNode = this.node?.nodes.find((n) => n.type === AudioGraphNodes.Output && n.parameters.name === link.fromParameter);
-                const toNode = this.graph?.findAudioNode(link.to);
-
-                if (fromNode && toNode && toNode.node && fromNode.node) {
-                    const connected = fromNode.node.connect(toNode.node, toNode.parameters.name);
-
-                    if (connected)
-                        this._nodesToDisconnect?.push({ from: fromNode.node, to: toNode.node });
-                } else {
-                    throw new Error(`Cannot connect node ${link.from} to ${link.to}.`);
-                }
-            });
-
-            this.node.start();
-        }
-    };
-
-    onBeforeStop = () => {
-
-        this._nodesToDisconnect?.forEach((nodes) => {
-            nodes.from.disconnect(nodes.to);
-        }
-        )
-
-        if (this.node) {
-            this.node.stop();
-        }
     };
 
     constructor() {

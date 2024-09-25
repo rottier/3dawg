@@ -8,7 +8,8 @@ import {
 import { AudioGraphNodes } from "../../../core/AudioGraph/types";
 import { useComposer } from "../../Composer";
 import TrayItem from "./TrayItem";
-import { IAudioGraph } from "../../../core/AudioGraph";
+import { AudioGraphNodeGraph, IAudioGraph } from "../../../core/AudioGraph";
+import { set } from "lodash";
 
 interface TrayItemGraphProps {
   graph: IAudioGraph;
@@ -56,7 +57,7 @@ export const TrayItemGraph: FunctionComponent<TrayItemGraphProps> = ({
           ? setRenamingGraph(true)
           : setActiveGraph(graph.id)
       }
-      graphNode={graph}
+      graphId={graph.id}
     />
   ) : (
     <li
