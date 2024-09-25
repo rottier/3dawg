@@ -12,6 +12,5 @@ export class AudioGraphNodeOutput extends AudioGraphNode<GainNode<TContext>> {
     super();
     this._parametersDefault = defaults;
     this._parameters = {...defaults};
-    this.reconstruct();
   }
 }

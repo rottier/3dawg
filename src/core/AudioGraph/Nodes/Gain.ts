@@ -17,6 +17,5 @@ export class AudioGraphNodeGain extends AudioGraphNode<
     super();
     this._parametersDefault = defaults;
     this._parameters = {...defaults};
-    this.reconstruct();
   }
 }

@@ -4,3 +4,4 @@ export * from "./Oscillator";
 export * from "./Output";
 export * from "./DynamicsCompressor";
 export * from "./Graph";
+export * from "./Input";

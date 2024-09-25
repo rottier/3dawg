@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { AudioContext } from "standardized-audio-context";
+import { AudioContext, isAnyAudioNode, IAudioParam } from "standardized-audio-context";
 import { Converter, JsonProperty } from "@paddls/ts-serializer";
 import { defaultSerializer } from "../../utils/Serializable";
 import { Subscribable } from "../../utils/Subscribable";
@@ -9,6 +9,8 @@ import { AudioGraphNode } from "./Nodes";
 import { AudioGraphNodes } from "./types";
 import { WebAudioGraphNode } from "./WebAudioGraphNode";
 import { Mixin } from "ts-mixer";
+import { AudioGraphNodeGraph } from './Nodes';
+
 
 class AudioGraphNodesConverter implements Converter<AudioGraphNode[] | AudioGraphNode, any> {
   fromJson(jsonObj: any) {
@@ -18,13 +20,13 @@ class AudioGraphNodesConverter implements Converter<AudioGraphNode[] | AudioGrap
       if (Array.isArray(jsonObj)) {
         jsonObj.forEach((node: any) => {
           const NodeType = getAudioGraphNodeType(node.type);
-          newNodes.push(serializer.deserialize(NodeType as { new (): AudioGraphNode }, node));
+          newNodes.push(serializer.deserialize(NodeType as { new(): AudioGraphNode }, node));
         });
         return newNodes;
       } else {
         const NodeType = getAudioGraphNodeType(jsonObj.type);
         return serializer.deserialize(
-          NodeType as { new (): AudioGraphNode },
+          NodeType as { new(): AudioGraphNode },
           jsonObj
         );
       }
@@ -134,6 +136,8 @@ export class AudioGraph extends Mixin(AudioGraphNode, WebAudioGraphNode) impleme
     if (this.audioContext?.state !== "running" && !this.playing) {
       this.audioContext?.resume();
     }
+
+    this.reconstruct();
 
     this.nodes.forEach((node) => node.start());
 
@@ -375,6 +379,5 @@ export class AudioGraph extends Mixin(AudioGraphNode, WebAudioGraphNode) impleme
 
   constructor() {
     super();
-    this.reconstruct();
   }
 }

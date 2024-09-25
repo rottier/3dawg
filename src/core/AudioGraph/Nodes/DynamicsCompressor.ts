@@ -21,6 +21,5 @@ export class AudioGraphNodeDynamicsCompressor extends AudioGraphNode<
     super();
     this._parametersDefault = defaults;
     this._parameters = {...defaults};
-    this.reconstruct();
   }
 }

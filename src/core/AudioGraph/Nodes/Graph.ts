@@ -19,35 +19,25 @@ export class AudioGraphNodeGraph extends AudioGraphNode<IAudioGraph> {
 
         this._graphId = id;
 
-        this.reconstruct();
+        this._reassignNode();
     }
     public get composer(): Composer | undefined {
         return this._composer;
     }
     public set composer(value: Composer) {
         this._composer = value;
+
+        this._reassignNode();
     }
 
-    onStart = () => this.node?.start();
-
-    onStop = () => this.node?.stop();
-
-    get numberOfInputs() {
-        return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Input).length || 0;
-    }
-
-    get numberOfOutputs() {
-        return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Output).length || 0;
-    }
-
-    reconstruct = () => {        
+    private _reassignNode = () => {
         if (this._composer && this.graphId) {
-            const node = this._composer.findGraph(this.graphId);
+            const graph = this._composer.findGraph(this.graphId);
 
-            if (node) {
-                this.node = node.copy();
+            if (graph) {
+                this.node = graph.copy();
 
-                const ioNodes = node.nodes.filter((n) => n.type === AudioGraphNodes.Input || n.type === AudioGraphNodes.Output);
+                const ioNodes = graph.nodes.filter((n) => n.type === AudioGraphNodes.Input || n.type === AudioGraphNodes.Output);
 
                 const newParameters: Record<string, string> = {};
                 ioNodes.forEach((n) => newParameters[n.parameters.name] = n.id);
@@ -58,13 +48,27 @@ export class AudioGraphNodeGraph extends AudioGraphNode<IAudioGraph> {
                 }
                 this._parametersDefault = {...this._parameters}
 
-                this.node.reconstruct();
+                return true;
             }
         };
-    };
+
+    }
+
+    onBeforeStart = () => this.node?.start();
+
+    onStop = () => this.node?.stop();
+
+    numberOfInputs = () => {
+        return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Input).length || 0;
+    }
+
+    numberOfOutputs = () => {
+        return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Output).length || 0;
+    }
+
+    reconstruct = () => this._reassignNode() && this.node?.reconstruct();
 
     constructor() {
         super();
-        this.reconstruct();
     }
 }

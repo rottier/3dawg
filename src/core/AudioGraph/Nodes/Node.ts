@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { Subscribable } from "../../../utils/Subscribable";
-import { IAudioNode, TContext, isAnyAudioNode, IAudioParam } from "standardized-audio-context";
+import { IAudioNode, IAudioParam, isAnyAudioNode, TContext } from "standardized-audio-context";
 import { AudioGraphNodes } from "../types";
 import { IAudioGraph, IAudioGraphNode } from "../interfaces";
 import { JsonProperty } from "@paddls/ts-serializer";
@@ -30,7 +30,6 @@ export abstract class AudioGraphNode<
   }
   public set audioContext(context: TContext) {
     this._context = context;
-    this.reconstruct();
   }
 
   public get id() {
@@ -109,8 +108,6 @@ export abstract class AudioGraphNode<
               if (this.graph?.playing) {
                 this.graph.stop();
                 this.graph.start();
-              } else {
-                this.reconstruct();
               }
             }
           }
@@ -147,6 +144,7 @@ export abstract class AudioGraphNode<
 
     const linkedTo = this.linksTo();
 
+    // TODO: Make this part of the AudioGraph class
     for (let i = 0; i < linkedTo.length; i++) {
       const link = linkedTo[i];
 
@@ -154,9 +152,9 @@ export abstract class AudioGraphNode<
 
       if (this.node) {
         try {
-          if (isAnyAudioNode(this.node) && isAnyAudioNode(toNode?.node) && (link.toParameter ? link.toParameter in toNode : true)) {
+          if (isAnyAudioNode(this.node) && isAnyAudioNode(toNode?.node) && (link.toParameter ? link.toParameter in toNode.node : true)) {
             if (link.toParameter) {
-              const nodeAsRecord = toNode as Record<string, any>;
+              const nodeAsRecord = toNode.node as Record<string, any>;
               this.node.connect(nodeAsRecord[link.toParameter] as IAudioParam);
             }
             else {
@@ -195,8 +193,6 @@ export abstract class AudioGraphNode<
 
     this.playing = false;
     this.onStop();
-
-    this.reconstruct();
   }
   reconstruct = () => { };
   onBeforeStart = () => { };

@@ -7,6 +7,5 @@ export class AudioGraphNodeDestination extends AudioGraphNode<IAudioDestinationN
   reconstruct = () => (this.node = this.audioContext.destination);
   constructor() {
     super();
-    this.reconstruct();
   }
 }
