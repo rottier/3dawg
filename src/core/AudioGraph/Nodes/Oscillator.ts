@@ -15,7 +15,7 @@ export class AudioGraphNodeOscillator extends AudioGraphNode<
 > {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Oscillator;
   reconstruct = () =>
-    (this.node = new OscillatorNode(this.context, this.parameters));
+    (this.node = new OscillatorNode(this.audioContext, this.parameters));
   onStart = () => this.node?.start();
   onStop = () => this.node?.stop();
 

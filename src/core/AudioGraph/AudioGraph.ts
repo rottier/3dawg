@@ -10,7 +10,7 @@ import { AudioGraphNodes } from "./types";
 import { WebAudioGraphNode } from "./WebAudioGraphNode";
 import { Mixin } from "ts-mixer";
 
-class AudioGraphNodesConverter extends WebAudioGraphNode implements Converter<AudioGraphNode[], any> {
+class AudioGraphNodesConverter implements Converter<AudioGraphNode[] | AudioGraphNode, any> {
   fromJson(jsonObj: any) {
     try {
       const serializer = defaultSerializer();
@@ -18,11 +18,9 @@ class AudioGraphNodesConverter extends WebAudioGraphNode implements Converter<Au
       if (Array.isArray(jsonObj)) {
         jsonObj.forEach((node: any) => {
           const NodeType = getAudioGraphNodeType(node.type);
-          return serializer.deserialize(
-            NodeType as { new (): AudioGraphNode },
-            node
-          );
+          newNodes.push(serializer.deserialize(NodeType as { new (): AudioGraphNode }, node));
         });
+        return newNodes;
       } else {
         const NodeType = getAudioGraphNodeType(jsonObj.type);
         return serializer.deserialize(
@@ -30,7 +28,6 @@ class AudioGraphNodesConverter extends WebAudioGraphNode implements Converter<Au
           jsonObj
         );
       }
-      return newNodes;
     } catch (e) {
       console.error(e);
       return [];
@@ -50,13 +47,13 @@ class AudioGraphNodesConverter extends WebAudioGraphNode implements Converter<Au
   }
 }
 
-class AudioGraphLinksConverter implements Converter<AudioGraphLink[], any> {
+class AudioGraphLinksConverter implements Converter<AudioGraphLink[] | AudioGraphLink, any> {
   graph: AudioGraph;
   fromJson(jsonObj: any) {
     try {
       const newLinks: AudioGraphLink[] = [];
 
-      if (jsonObj.forEach) {
+      if (Array.isArray(jsonObj)) {
         jsonObj.forEach((link: any) => {
           const newLink = {
             id: uuid(),
@@ -67,18 +64,16 @@ class AudioGraphLinksConverter implements Converter<AudioGraphLink[], any> {
           };
           newLinks.push(newLink);
         });
+        return newLinks;
       } else {
-        const newLink = {
+        return {
           id: uuid(),
           from: jsonObj.from,
           to: jsonObj.to,
           fromParameter: jsonObj.fromParameter,
           toParameter: jsonObj.toParameter,
         };
-        newLinks.push(newLink);
       }
-
-      return newLinks;
     } catch (e) {
       console.error(e);
       return [];
@@ -127,17 +122,17 @@ export class AudioGraph extends Mixin(AudioGraphNode, WebAudioGraphNode) impleme
     }
   }
 
-  public set context(context: AudioContext) {
+  public set audioContext(context: AudioContext) {
     this._context = context;
 
     if (this.nodes.length > 0) {
-      this.nodes.forEach((node) => (node.context = context));
+      this.nodes.forEach((node) => (node.audioContext = context));
     }
   }
 
-  start() {
-    if (this.context?.state !== "running" && !this.playing) {
-      this.context?.resume();
+  start = () => {
+    if (this.audioContext?.state !== "running" && !this.playing) {
+      this.audioContext?.resume();
     }
 
     this.nodes.forEach((node) => node.start());
@@ -146,9 +141,9 @@ export class AudioGraph extends Mixin(AudioGraphNode, WebAudioGraphNode) impleme
 
     this.onPlayback.notify();
   }
-  stop() {
-    if (this.context?.state === "running" && this.playing) {
-      this.context.suspend();
+  stop = () => {
+    if (this.audioContext?.state === "running" && this.playing) {
+      this.audioContext.suspend();
     }
 
     this.nodes.forEach((node) => node.stop());
@@ -173,8 +168,9 @@ export class AudioGraph extends Mixin(AudioGraphNode, WebAudioGraphNode) impleme
     const serializer = defaultSerializer();
     const serialized = serializer.serialize(this);
 
-    const graphNode = serializer.deserialize(AudioGraph, serialized);
+    const graphNode = serializer.deserialize(AudioGraph, serialized) as AudioGraph;
     graphNode.regenerateID();
+    graphNode.nodes.forEach((node: IAudioGraphNode) => node.graph = graphNode);
     return graphNode;
   }
 

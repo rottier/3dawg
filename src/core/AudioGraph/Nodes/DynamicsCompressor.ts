@@ -15,7 +15,7 @@ export class AudioGraphNodeDynamicsCompressor extends AudioGraphNode<
   IDynamicsCompressorOptions
 > {
   public readonly type: AudioGraphNodes = AudioGraphNodes.DynamicsCompressor;
-  reconstruct = () => (this.node = new DynamicsCompressorNode(this.context, this.parameters));
+  reconstruct = () => (this.node = new DynamicsCompressorNode(this.audioContext, this.parameters));
 
   constructor() {
     super();

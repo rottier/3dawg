@@ -11,7 +11,7 @@ export class AudioGraphNodeGain extends AudioGraphNode<
   IGainOptions
 > {
   public readonly type: AudioGraphNodes = AudioGraphNodes.Gain;
-  reconstruct = () => (this.node = new GainNode(this.context, this.parameters));
+  reconstruct = () => (this.node = new GainNode(this.audioContext, this.parameters));
 
   constructor() {
     super();

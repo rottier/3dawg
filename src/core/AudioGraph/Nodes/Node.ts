@@ -5,7 +5,6 @@ import { AudioGraphNodes } from "../types";
 import { IAudioGraph, IAudioGraphNode } from "../interfaces";
 import { JsonProperty } from "@paddls/ts-serializer";
 import { globalAudioContext } from "../AudioGraphContext";
-import { on } from 'events';
 import { AudioGraphNodeGraph } from '..';
 
 interface IAudioParamNode {
@@ -26,15 +25,14 @@ export abstract class AudioGraphNode<
    * The audio context used by the audio graph.
    */
   protected _context: TContext = globalAudioContext;
-  public get context(): TContext {
+  public get audioContext(): TContext {
     return this._context;
   }
-  public set context(context: TContext) {
+  public set audioContext(context: TContext) {
     this._context = context;
     this.reconstruct();
   }
 
-  @JsonProperty()
   public get id() {
     return this._id;
   }
@@ -43,9 +41,9 @@ export abstract class AudioGraphNode<
     this._id = id;
   }
 
-  private _id: string = uuid();
+  @JsonProperty('id') private _id: string = uuid();
 
-  protected regenerateID() {
+  protected regenerateID = () => {
     this.id = uuid();
   }
 
@@ -69,7 +67,7 @@ export abstract class AudioGraphNode<
    */
   public readonly linksFrom = () =>
     this.graph?.links
-      .filter((link) => link.to === this.id) || [];
+      .filter((link) => link.to === this._id) || [];
   /**
    * Returns an array of AudioGraphLink objects that are linked to this AudioGraphNode.
    *
@@ -77,7 +75,7 @@ export abstract class AudioGraphNode<
    */
   public readonly linksTo = () =>
     this.graph?.links
-      .filter((link) => link.from === this.id) || [];
+      .filter((link) => link.from === this._id) || [];
   protected _parametersDefault: Partial<Parameters> = {};
   protected _parameters: Partial<Parameters> = {};
   public readonly onParameterChange = new Subscribable<Partial<Record<string, any>>>(() => this._parameters);
@@ -105,12 +103,14 @@ export abstract class AudioGraphNode<
                 .setValueAtTime as IAudioParamNode["setValueAtTime"];
 
               if (setValueAtTime) {
-                setValueAtTime(Number(value), this.context?.currentTime || 0);
+                setValueAtTime(Number(value), this.audioContext?.currentTime || 0);
               }
             } else {
               if (this.graph?.playing) {
                 this.graph.stop();
                 this.graph.start();
+              } else {
+                this.reconstruct();
               }
             }
           }
@@ -134,11 +134,11 @@ export abstract class AudioGraphNode<
   public set graph(graph: IAudioGraph) {
     this._graph = graph;
 
-    if (graph.context)
-      this._context = graph.context;
+    if (graph.audioContext)
+      this._context = graph.audioContext;
   }
 
-  start() {
+  start = () => {
     this.onBeforeStart();
 
     if (this.isPlaying) {
@@ -152,31 +152,35 @@ export abstract class AudioGraphNode<
 
       const toNode = this.graph?.findAudioNode(link.to);
 
-      if (isAnyAudioNode(this.node)) {
+      if (this.node) {
         try {
-          if (isAnyAudioNode(toNode?.node) && (link.toParameter ? link.toParameter in toNode : true)) {
+          if (isAnyAudioNode(this.node) && isAnyAudioNode(toNode?.node) && (link.toParameter ? link.toParameter in toNode : true)) {
             if (link.toParameter) {
               const nodeAsRecord = toNode as Record<string, any>;
               this.node.connect(nodeAsRecord[link.toParameter] as IAudioParam);
             }
-            else
+            else {
               this.node.connect(toNode.node);
+            }
           } else if (toNode instanceof AudioGraphNodeGraph) {
             const subGraph = toNode as AudioGraphNodeGraph;
             const inputNode = subGraph.node?.nodes.find((n) => n.type === AudioGraphNodes.Input && n.parameters.name === link.toParameter);
 
-            if (isAnyAudioNode(inputNode?.node))
-              this.node.connect(inputNode.node)
+            if (isAnyAudioNode(inputNode?.node)) {
+              this.node.connect(inputNode.node);
+            }
           } else if (this instanceof AudioGraphNodeGraph) {
             const subGraph = this as AudioGraphNodeGraph;
             const outputNode = subGraph.node?.nodes.find((n) => n.type === AudioGraphNodes.Output && n.parameters.name === link.fromParameter);
 
-            if (isAnyAudioNode(outputNode?.node))
-              outputNode.node.connect(this.node);
+            if (isAnyAudioNode(outputNode?.node) && isAnyAudioNode(toNode?.node)) {
+              outputNode.node.connect(toNode.node)
+            }
+          } else {
           }
         } catch (error) {
-          console.error(`Could not link node ${link.from} ${link.fromParameter && `(from parameter ${link.fromParameter})`} to node ${link.to} ${link.toParameter && `(to parameter ${link.toParameter})`}:`, error);
         }
+      } else {
       }
     }
     this.playing = true;
@@ -184,20 +188,21 @@ export abstract class AudioGraphNode<
     this.onStart();
   }
 
-  stop() {
+  stop = () => {
     if (!this.playing) return;
 
     this.onBeforeStop();
 
     this.playing = false;
     this.onStop();
+
     this.reconstruct();
   }
-  reconstruct() { };
-  onBeforeStart() { };
-  onBeforeStop() { };
-  onStart() { };
-  onStop() { };
+  reconstruct = () => { };
+  onBeforeStart = () => { };
+  onBeforeStop = () => { };
+  onStart = () => { };
+  onStop = () => { };
   resetParameters = () => this.parameters = this._parametersDefault;
   resetParameter = (name: string) => this.parameters = { [name]: this._parametersDefault[name] as Parameters[string] } as Partial<Parameters>;
 }

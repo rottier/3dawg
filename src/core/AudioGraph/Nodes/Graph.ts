@@ -28,13 +28,9 @@ export class AudioGraphNodeGraph extends AudioGraphNode<IAudioGraph> {
         this._composer = value;
     }
 
-    onStart = () => {
-        this.node?.start();
-    }
+    onStart = () => this.node?.start();
 
-    onStop = () => {
-        this.node?.stop();
-    }
+    onStop = () => this.node?.stop();
 
     get numberOfInputs() {
         return this.node?.nodes.filter((n) => n.type === AudioGraphNodes.Input).length || 0;

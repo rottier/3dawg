@@ -12,11 +12,12 @@ export interface IAudioGraphNode<
   readonly id: string;
   graphId?: string;
   composer?: Composer;
-  context: TContext;
+  audioContext: TContext;
   readonly type: AudioGraphNodes;
   label: string;
   playing: boolean;
   readonly isPlaying: boolean;
+  graph?: IAudioGraph;
 
   position: { x: number; y: number };
 
